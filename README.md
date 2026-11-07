@@ -24,7 +24,7 @@ codex plugin add dex-skills@dex
 
 ### OpenCode, Cursor, or any other agent: [skills CLI](https://skills.sh) (manual updates)
 ```bash
-npx skills@latest add Dhananjay-JSR/dex-skills -a <agent>   # opencode, codex, claude-code, cursor…; omit -a to choose
+npx skills@latest add Dhananjay-JSR/dex-skills -a <agent>   # e.g. opencode, cursor, windsurf; omit -a to pick interactively
 npx skills@latest add Dhananjay-JSR/dex-skills --skill=grill-and-defend   # just one skill
 npx skills@latest update                                    # pull updates; re-run `add` for new skills
 ```
