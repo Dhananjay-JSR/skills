@@ -8,8 +8,6 @@ Dex's agent skills. They work across **Claude Code, Codex and OpenCode** (and an
 
 ## Install
 
-> The repo is private for now: these commands need GitHub access to it (`gh auth login` or SSH keys).
-
 ### Claude Code (plugin, updates itself)
 ```bash
 claude plugin marketplace add Dhananjay-JSR/dex-skills
