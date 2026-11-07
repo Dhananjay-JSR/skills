@@ -56,14 +56,10 @@ git clone https://github.com/Dhananjay-JSR/skills.git ~/dex-skills
 - Claude Code reads `~/.claude/skills`.
 - OpenCode reads `~/.config/opencode/skills`, `~/.claude/skills` **and** `~/.agents/skills`. If you use OpenCode, link into only one of those dirs.
 
-## Turning `grill-and-defend` off
+## Disabling `grill-and-defend`
 
-**Soft switch: works in every agent, nothing to configure**
-- Say `grill off` / `grill on` to toggle it for the current session.
-- Add the line `grill-and-defend: off` to a repo's `AGENTS.md` or `CLAUDE.md` to turn it off for that project.
-- While it's off, the agent still logs its assumptions quietly, so `grill on` picks them up.
+To stop the skill, disable or remove the installed skill in your agent:
 
-**Hard switch: the agent can't load it at all**
 | Agent | How |
 |---|---|
 | Claude Code (plugin) | `claude plugin disable dex-skills@dex` (or `enable`). Add `--scope user\|project\|local` to choose where. Disables every skill in this plugin |
