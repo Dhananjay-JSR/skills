@@ -56,6 +56,22 @@ git clone https://github.com/Dhananjay-JSR/skills.git ~/dex-skills
 - Claude Code reads `~/.claude/skills`.
 - OpenCode reads `~/.config/opencode/skills`, `~/.claude/skills` **and** `~/.agents/skills`. If you use OpenCode, link into only one of those dirs.
 
+## Turning `grill-and-defend` off
+
+**Soft switch: works in every agent, nothing to configure**
+- Say `grill off` / `grill on` to toggle it for the current session.
+- Add the line `grill-and-defend: off` to a repo's `AGENTS.md` or `CLAUDE.md` to turn it off for that project.
+- While it's off, the agent still logs its assumptions quietly, so `grill on` picks them up.
+
+**Hard switch: the agent can't load it at all**
+| Agent | How |
+|---|---|
+| Claude Code (plugin) | `claude plugin disable dex-skills@dex` (or `enable`). Add `--scope user\|project\|local` to choose where. Disables every skill in this plugin |
+| Claude Code (`~/.claude/skills`) | In `settings.json`: `"permissions": { "deny": ["Skill(grill-and-defend)"] }` |
+| Codex | In `~/.codex/config.toml`: `[[skills.config]]`, then `name = "grill-and-defend"` and `enabled = false`. Restart Codex |
+| OpenCode | In `opencode.jsonc`: `"permissions": [{ "action": "skill", "resource": "grill-and-defend", "effect": "deny" }]` |
+| skills CLI installs | `npx skills@latest remove grill-and-defend` |
+
 ## Repo layout
 ```
 skills/<category>/<skill-name>/SKILL.md   # one folder per skill, Agent Skills format
