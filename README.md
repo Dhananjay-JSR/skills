@@ -1,12 +1,31 @@
-# dex-skills
+# Dex's Skills
 
-Dex's agent skills. They work across **Claude Code, Codex and OpenCode** (and any agent that supports the open [Agent Skills](https://agentskills.io) `SKILL.md` format).
+Agent skills for engineers who want to **own** the code their AI writes.
 
-| Skill | What it does |
+AI agents can build a whole module before you've thought about it once. These skills flip that around: you stay the decision-maker, and you come out of every session able to defend each choice, algorithm and assumption, as if in a thesis viva.
+
+They work in **Claude Code, Codex, OpenCode**, and any agent that supports the open [Agent Skills](https://agentskills.io) `SKILL.md` format.
+
+```bash
+npx skills@latest add Dhananjay-JSR/skills
+```
+
+## Skills
+
+### [`grill-and-defend`](skills/engineering/grill-and-defend/SKILL.md)
+Viva mode for building. It activates automatically on real design work (multi-file features, architecture, algorithms, models, data formats), not on one-line fixes.
+
+| What happens | Why |
 |---|---|
-| [`grill-and-defend`](skills/engineering/grill-and-defend/SKILL.md) | Keeps you the decision-maker. The agent grills you at every design fork, gives an "algorithm card" for every technique, logs decisions and its own assumptions in `DECISIONS.md`, and runs a 5-question viva quiz after each module, so you can defend every line of your project |
+| **Grilling at design forks:** forks are batched into one message, and you commit to an answer *before* seeing the agent's pick. You can skip a fork, but only with a stated reason | Avoids being anchored by the agent's suggestion. Every decision ends up with your own reasoning |
+| **Algorithm cards:** for each technique outside standard software engineering, the agent gives its family (e.g. "LoRA: a PEFT fine-tuning method"), what it does, why it was chosen here, where it lives in the code, and terms to search | You know what every piece of the system is, and where to read more |
+| **Decision log** (`DECISIONS.md`, or your existing ADR folder): each entry has a one-sentence trade-off summary, the options with pros and cons, a hypothesis, what would prove it wrong, and a pre-mortem. The agent's own assumptions are marked `assumed` | Decisions survive across sessions, and the agent's silent assumptions become visible debts |
+| **Viva quiz** after each module: 4 questions on decisions and assumptions, plus 1 code-failure question ("if this hypothesis is wrong, what happens?"). Answers are withheld until you reply, then graded | Recall beats re-reading. Missed questions go into `VIVA.md` and come back in later sessions |
+| **Opt-in modes:** *hands-on* (you write the core logic, in real code or pseudocode) and *debugging drill* (say "drill me" and the agent plants a bug for you to find) | Practice the skills that weaken when an AI does all the work |
 
 ## Install
+
+Pick **one** route per agent, or the same skill loads twice.
 
 ### Claude Code (plugin, updates itself)
 ```bash
@@ -24,27 +43,25 @@ codex plugin add dex-skills@dex
 ```bash
 npx skills@latest add Dhananjay-JSR/skills -a <agent>   # e.g. opencode, cursor, windsurf; omit -a to pick interactively
 npx skills@latest add Dhananjay-JSR/skills --skill=grill-and-defend   # just one skill
-npx skills@latest update                                    # pull updates; re-run `add` for new skills
+npx skills@latest update                                # pull updates; re-run `add` for new skills
 ```
-This copies editable files into your agent's skills folder.
 
-### Any agent: symlink install for contributors (update with `git pull`)
+### Contributors: symlink install (update with `git pull`)
 ```bash
-git clone git@github.com:Dhananjay-JSR/skills.git ~/dex-skills
+git clone https://github.com/Dhananjay-JSR/skills.git ~/dex-skills
 ~/dex-skills/scripts/link-skills.sh                    # links into ~/.claude/skills and ~/.agents/skills
 ~/dex-skills/scripts/link-skills.sh ~/.agents/skills   # or pick specific dirs
 ```
 - Codex reads `~/.agents/skills`.
-- OpenCode reads `~/.config/opencode/skills`, `~/.claude/skills` **and** `~/.agents/skills`. If you use OpenCode, link into only one of those dirs, so the same skill doesn't load twice.
 - Claude Code reads `~/.claude/skills`.
+- OpenCode reads `~/.config/opencode/skills`, `~/.claude/skills` **and** `~/.agents/skills`. If you use OpenCode, link into only one of those dirs.
 
-Use only one install method per agent (plugin **or** symlink), or the same skill loads twice.
-
-## Layout
+## Repo layout
 ```
 skills/<category>/<skill-name>/SKILL.md   # one folder per skill, Agent Skills format
 .claude-plugin/                           # marketplace + plugin manifests (Claude Code, Codex)
 scripts/link-skills.sh                    # symlink installer
+DECISIONS.md                              # why this repo is the way it is (grill-and-defend, dogfooded)
 ```
 When adding a skill, also list it in `.claude-plugin/plugin.json`.
 
