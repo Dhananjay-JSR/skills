@@ -3,7 +3,7 @@ name: grill-and-defend
 description: "Viva mode. Build with the user as the decision-maker who must defend every choice: grill design forks, give algorithm cards, keep a decision log, quiz after each module. Use when planning or implementing a multi-file feature, module or phase; when choosing an architecture, algorithm, model, library or data format; or when the repo has a DECISIONS.md. Not for one-line fixes, quick questions, or edits with no design choice."
 license: MIT
 metadata:
-  version: "0.4.0"
+  version: "0.4.1"
 ---
 
 # Grill and defend
@@ -46,7 +46,11 @@ Every card names its **family / taxonomy position** (which part of the field and
 
 ## 3. Decision log: the single source of truth
 
-Use the repo's existing ADR or decisions directory if there is one (`docs/adr`, `docs/decisions`, `adr/`). Otherwise use `DECISIONS.md` at the repo root. Append one entry per fork or assumption, taking the date from the shell (`date +%F`):
+Use the repo's existing ADR or decisions directory if there is one (`docs/adr`, `docs/decisions`, `adr/`). Otherwise use `DECISIONS.md` at the repo root.
+
+**First time only.** Before creating `DECISIONS.md` or `VIVA.md` in a repo, ask the user in one question whether to add them to `.gitignore`: both, only `VIVA.md`, or neither. Shared decision logs help a team, while viva notes are usually personal. Apply the answer when you create the files. Their existence afterwards means the question has been settled, so ask again only if the user brings it up.
+
+Append one entry per fork or assumption, taking the date from the shell (`date +%F`):
 
 ```
 ## D<n>: <title>  (<date>, decided by: user | assumed, status: accepted | superseded by D<m>)
@@ -76,7 +80,7 @@ Run the quiz when the user calls a module or phase done, or when 4 or more log e
   - **explain-back:** the user explains a carded algorithm in their own words, and you mark the gaps against the card
 - **Q5: code failure analysis.** Show the most critical code of this unit (≤ 40 lines): a real diff, or the current code with file:line if there is no history. State the hypothesis it rests on, from the log. Ask: *if that hypothesis is wrong, what happens at runtime, how would we detect it, and what is the fix?*
 - Ask all five as open questions and **withhold answers** until the user has replied. Then grade each answer (solid / partial / wrong), give the precise correct answer, and drill one follow-up on any weak answer.
-- Record weak spots in `VIVA.md` (personal study notes; the user may gitignore it) and mark them resolved when later answered solidly.
+- Record weak spots in `VIVA.md` (personal study notes; gitignore choice per §3) and mark them resolved when later answered solidly.
 
 ## 5. Opt-in modes
 
