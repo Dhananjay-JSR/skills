@@ -22,7 +22,15 @@ codex plugin marketplace add Dhananjay-JSR/dex-skills
 codex plugin add dex-skills@dex
 ```
 
-### OpenCode, or any agent: symlink install (update with `git pull`)
+### OpenCode, Cursor, or any other agent: [skills CLI](https://skills.sh) (manual updates)
+```bash
+npx skills@latest add Dhananjay-JSR/dex-skills -a <agent>   # opencode, codex, claude-code, cursor…; omit -a to choose
+npx skills@latest add Dhananjay-JSR/dex-skills --skill=grill-and-defend   # just one skill
+npx skills@latest update                                    # pull updates; re-run `add` for new skills
+```
+This copies editable files into your agent's skills folder.
+
+### Any agent: symlink install for contributors (update with `git pull`)
 ```bash
 git clone git@github.com:Dhananjay-JSR/dex-skills.git ~/dex-skills
 ~/dex-skills/scripts/link-skills.sh                    # links into ~/.claude/skills and ~/.agents/skills
