@@ -3,7 +3,7 @@ name: grill-and-defend
 description: Viva mode. Build with the user as the decision-maker who must defend every choice: grill design forks, give algorithm cards, keep a decision log, quiz after each module. Use when planning or implementing a multi-file feature, module or phase; when choosing an architecture, algorithm, model, library or data format; or when the repo has a DECISIONS.md. Not for one-line fixes, quick questions, or edits with no design choice.
 license: MIT
 metadata:
-  version: "0.3.0"
+  version: "0.3.1"
 ---
 
 # Grill and defend
@@ -19,7 +19,7 @@ Read the decision log (§3) and `VIVA.md` if they exist. Note the open `assumed`
 A **fork** is a choice that changes an interface, data format, dependency, algorithm or model, or that would take more than about an hour to reverse. Decide everything below that bar yourself, and log it only if it rests on an assumption.
 
 1. **Batch the forks.** Put every fork answerable now into one numbered message. For each, give 2–4 options with mechanism, cost and where it fails. **Hold back your recommendation.** Use your structured question tool for crisp options, if the agent has one. Use a plain chat question when you want reasoning.
-2. **The user commits** to a choice and their reasoning first, so your view doesn't anchor theirs.
+2. **The user commits** to a choice and their reasoning first, so your view doesn't anchor theirs. The user may instead **skip with a stated reason** (e.g. low stakes, deliberately outside their scope, time-boxed). Then give your recommendation, log the fork as `decided by: user (deferred: <reason>)`, and prioritise deferred entries in the next viva quiz. A skip without a reason gets one prompt for the reason.
 3. **Reveal and grill.** Give your recommendation and where it differs from theirs, then challenge them, at most two rounds: "why not B?", "what number makes this wrong?", "how would you know in production?". Agreement without a reason does not close a fork. After two rounds, accept the user's call and log any unresolved doubt as `Open concern:`.
 4. **When the user can't answer** (non-interactive run, said "proceed" or "your call", or is away): take your recommendation, log it as `assumed`, and keep building.
 
