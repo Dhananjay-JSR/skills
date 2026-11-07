@@ -10,27 +10,27 @@ Dex's agent skills. They work across **Claude Code, Codex and OpenCode** (and an
 
 ### Claude Code (plugin, updates itself)
 ```bash
-claude plugin marketplace add Dhananjay-JSR/dex-skills
+claude plugin marketplace add Dhananjay-JSR/skills
 claude plugin install dex-skills@dex
 ```
 
 ### Codex (plugin)
 ```bash
-codex plugin marketplace add Dhananjay-JSR/dex-skills
+codex plugin marketplace add Dhananjay-JSR/skills
 codex plugin add dex-skills@dex
 ```
 
 ### OpenCode, Cursor, or any other agent: [skills CLI](https://skills.sh) (manual updates)
 ```bash
-npx skills@latest add Dhananjay-JSR/dex-skills -a <agent>   # e.g. opencode, cursor, windsurf; omit -a to pick interactively
-npx skills@latest add Dhananjay-JSR/dex-skills --skill=grill-and-defend   # just one skill
+npx skills@latest add Dhananjay-JSR/skills -a <agent>   # e.g. opencode, cursor, windsurf; omit -a to pick interactively
+npx skills@latest add Dhananjay-JSR/skills --skill=grill-and-defend   # just one skill
 npx skills@latest update                                    # pull updates; re-run `add` for new skills
 ```
 This copies editable files into your agent's skills folder.
 
 ### Any agent: symlink install for contributors (update with `git pull`)
 ```bash
-git clone git@github.com:Dhananjay-JSR/dex-skills.git ~/dex-skills
+git clone git@github.com:Dhananjay-JSR/skills.git ~/dex-skills
 ~/dex-skills/scripts/link-skills.sh                    # links into ~/.claude/skills and ~/.agents/skills
 ~/dex-skills/scripts/link-skills.sh ~/.agents/skills   # or pick specific dirs
 ```
