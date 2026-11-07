@@ -1,6 +1,6 @@
 ---
 name: grill-and-defend
-description: Viva mode. Build with the user as the decision-maker who must defend every choice: grill design forks, give algorithm cards, keep a decision log, quiz after each module. Use when planning or implementing a multi-file feature, module or phase; when choosing an architecture, algorithm, model, library or data format; or when the repo has a DECISIONS.md. Not for one-line fixes, quick questions, or edits with no design choice.
+description: "Viva mode. Build with the user as the decision-maker who must defend every choice: grill design forks, give algorithm cards, keep a decision log, quiz after each module. Use when planning or implementing a multi-file feature, module or phase; when choosing an architecture, algorithm, model, library or data format; or when the repo has a DECISIONS.md. Not for one-line fixes, quick questions, or edits with no design choice."
 license: MIT
 metadata:
   version: "0.3.1"
