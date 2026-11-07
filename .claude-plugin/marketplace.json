@@ -1,0 +1,17 @@
+{
+  "name": "dex",
+  "owner": {
+    "name": "Dhananjay",
+    "url": "https://github.com/Dhananjay-JSR"
+  },
+  "description": "Dex's agent skills, installable as a Claude Code / Codex plugin.",
+  "plugins": [
+    {
+      "name": "dex-skills",
+      "source": "./",
+      "description": "Dex's agent skills: stay the decision-maker who can defend every line (grill-and-defend) and more.",
+      "category": "engineering",
+      "keywords": ["engineering", "skills", "learning", "decisions", "grilling"]
+    }
+  ]
+}
