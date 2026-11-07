@@ -13,7 +13,7 @@ npx skills@latest add Dhananjay-JSR/skills
 ## Skills
 
 ### [`grill-and-defend`](skills/engineering/grill-and-defend/SKILL.md)
-Viva mode for building. Once installed, it applies to any coding task. Small changes pass through quietly, because grilling only kicks in at real design forks (interface, data format, dependency, algorithm or model changes, or anything more than ~1 hour to reverse).
+Viva mode for building. It activates automatically on real design work (multi-file features, architecture, algorithms, models, data formats), not on one-line fixes.
 
 | What happens | Why |
 |---|---|
