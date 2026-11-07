@@ -77,7 +77,6 @@ git clone https://github.com/Dhananjay-JSR/skills.git ~/dex-skills
 skills/<category>/<skill-name>/SKILL.md   # one folder per skill, Agent Skills format
 .claude-plugin/                           # marketplace + plugin manifests (Claude Code, Codex)
 scripts/link-skills.sh                    # symlink installer
-DECISIONS.md                              # why this repo is the way it is (grill-and-defend, dogfooded)
 ```
 When adding a skill, also list it in `.claude-plugin/plugin.json`.
 
