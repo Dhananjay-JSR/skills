@@ -34,7 +34,7 @@ Run on 2026-11-08, skill v0.7.2. Generation cost about $0.28 per full run.
 - **Mentor behaviour, not just code:** mentor score 4.3 → 6.9 and checklist pass 34% → 90%. Every model improved, and the effect is largest on the fork (2.3 → 7.2) and the end-of-module check (3.5 → 7.7). Without the skill, no model asked the user to decide at the fork (0/6 on every fork criterion). They all just built.
 - **No over-triggering:** the trivial rename stays a quiet rename (7.3 → 7.5).
 - **Receipts:** with the skill, models give a paste-able old/new command, an expectation and a table far more often (baseline: 1/6 gave a runnable comparison).
-- **Weakest spot, `your_call` (4.7 → 5.3):** models log the assumption, but several stop at a plan instead of making progress on the code.
+- **Weakest score, `your_call` (4.7 → 5.3):** the behaviour does change. Baseline models proceed silently: 0/6 record the decision as an assumption, 1/6 state a hypothesis. With the skill that's 6/6 and 5/6, and 5/6 still make progress on the code. The judge rates deferral modestly in both conditions, since the user opted out of deciding.
 
 ## What the benchmark changed in the skill
 | Version | Change | Effect |
