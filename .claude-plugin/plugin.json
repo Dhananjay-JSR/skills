@@ -1,15 +1,23 @@
 {
   "name": "dex-skills",
   "version": "0.6.0",
-  "description": "Dex's agent skills: build with the human as the decision-maker who can defend every choice.",
+  "description": "Dex's agent skills: stay the decision-maker (grill-and-defend), give every UI its own design system (design-system), write tight, verified READMEs (readme).",
   "author": {
     "name": "Dhananjay",
     "url": "https://github.com/Dhananjay-JSR"
   },
   "repository": "https://github.com/Dhananjay-JSR/skills",
   "license": "MIT",
-  "keywords": ["engineering", "skills", "learning", "decisions", "grilling"],
+  "keywords": [
+    "engineering",
+    "skills",
+    "learning",
+    "decisions",
+    "grilling"
+  ],
   "skills": [
-    "./skills/engineering/grill-and-defend"
+    "./skills/engineering/grill-and-defend",
+    "./skills/design/design-system",
+    "./skills/engineering/readme"
   ]
 }

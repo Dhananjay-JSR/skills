@@ -23,6 +23,18 @@ Build mode where you stay the decision-maker. It activates automatically on real
 | **Module quiz** after each module: 4 questions on decisions and assumptions, plus 1 code-failure question ("if this hypothesis is wrong, what happens?"). Answers are withheld until you reply, then graded | Recall beats re-reading. Missed questions go into `VIVA.md` and come back in later sessions |
 | **Opt-in modes:** *hands-on* (you write the core logic, in real code or pseudocode) and *debugging drill* (say "drill me" and the agent plants a bug for you to find) | Practice the skills that weaken when an AI does all the work |
 
+### [`design-system`](skills/design/design-system/SKILL.md)
+Gives every web UI its own design system before any page is built, so it doesn't come out as the generic AI look.
+- Takes a brief (audience, 3–5 brand attributes, references), proposes 3 clearly different directions rooted in the product's own world, and audits them against a list of [AI-default fingerprints](skills/design/design-system/references/ai-fingerprints.md), including the *new* defaults models drift to.
+- Writes `DESIGN.md` plus three-tier tokens (OKLCH color, a modular fluid type scale, spacing, shape, motion), with every component in every state.
+- Mobile and desktop are both first-class: breakpoint tokens and a stated layout per section for each.
+- Builds a specimen page for review, then pages from tokens only, against UX rules (focus, touch targets, forms, contrast, states). Finishes with a fingerprint check at phone and desktop widths.
+- Learns from [20 exemplar systems](skills/design/design-system/references/exemplars.md) (dev tools, fintech including CRED and Zerodha, creative tools, hardware, GOV.UK), covering both visual and UX choices, and borrows their reasoning, not their look.
+- **Benchmarked** on 6 mid-tier models (DeepSeek, GLM, Qwen, Gemini Flash, GPT Luna, Claude Haiku): AI-look score 5.2 → 2.1, measured UX issues 2.8 → 1.1, blind-judged distinctiveness 4.8 → 6.2. [Results and limits](evals/design-system/RESULTS.md).
+
+### [`readme`](skills/engineering/readme/SKILL.md)
+Writes READMEs that are short, specific to the project, and verified against the repo: only the sections the project actually has, no em dashes, no filler, and every command, flag, version and link checked against the source.
+
 ## Install
 
 Pick **one** route per agent, or the same skill loads twice.
@@ -73,6 +85,7 @@ To stop the skill, disable or remove the installed skill in your agent:
 skills/<category>/<skill-name>/SKILL.md   # one folder per skill, Agent Skills format
 .claude-plugin/                           # marketplace + plugin manifests (Claude Code, Codex)
 scripts/link-skills.sh                    # symlink installer
+evals/<skill>/                            # benchmarks (run.py, evaluate.py, RESULTS.md)
 ```
 When adding a skill, also list it in `.claude-plugin/plugin.json`.
 
