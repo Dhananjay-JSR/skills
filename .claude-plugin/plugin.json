@@ -1,6 +1,6 @@
 {
   "name": "dex-skills",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Dex's agent skills: stay the decision-maker (grill-and-defend), give every UI its own design system (design-system), write tight, verified READMEs (readme).",
   "author": {
     "name": "Dhananjay",

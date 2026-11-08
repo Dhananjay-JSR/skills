@@ -3,7 +3,7 @@ name: design-system
 description: "Create a distinctive design system before building web UI, so the result has its own taste instead of the generic AI look. Use when building or restyling a website, landing page or web app UI and the project has no DESIGN.md or design tokens yet, or when the user asks for a design system, visual direction, rebrand or better taste."
 license: MIT
 metadata:
-  version: "0.2.1"
+  version: "0.3.0"
 ---
 
 # Design system
@@ -41,7 +41,7 @@ Write `DESIGN.md` at the repo root, plus a tokens file in the project's stack: C
 - **Color:** build scales in OKLCH. Mostly neutrals tinted toward the direction, one accent reserved for primary action, and status colors only where they carry meaning. Use no pure `#000`/`#fff` surfaces. Derive dark mode by re-mapping the semantic roles (lighter surfaces for depth, slightly lower chroma), not by inverting. Check contrast: WCAG 2.2 AA, 4.5:1 body text, 3:1 large text, UI parts and focus rings.
 - **Type:** at most 2 families, chosen for character with a one-line reason. Fonts on the fingerprint list need a written justification. Sources: Google Fonts, Fontshare, Fontsource. Use a modular scale whose ratio fits the genre (~1.2 for dense UI, 1.333–1.5+ for editorial), fluid sizes with `clamp()`, body measure 45–75ch, body leading 1.4–1.6, headings 1.05–1.2, and tighter tracking on large sizes.
 - **Space and layout:** a 4px base with a named scale. Use less space inside a group than between groups. Name a grid, a max content width, and the density. Vary section rhythm on purpose rather than repeating one stacked pattern.
-- **Responsive (mobile and desktop are both first-class):** design mobile-first, then compose desktop deliberately rather than just stretching mobile. Name breakpoint tokens (e.g. 360, 768, 1024, 1440) and for each key section state its mobile and desktop layouts: what stacks, reorders, collapses or hides. Use fluid type and spacing (`clamp()`) between breakpoints. On mobile: a nav pattern that fits thumbs, primary actions within thumb reach, ≥16px input text (prevents iOS zoom), and no horizontal scroll at 320px. On desktop: use the width for real composition (asymmetry, side-by-side content, a capped measure), not wide empty stretches or giant centered blocks. Every column of the first screen carries content. Without real imagery, make the hero content-led (a real product artefact, data, a menu, a schedule, the form itself) rather than a floating ornament in an empty half.
+- **Responsive (mobile and desktop are both first-class):** design mobile-first, then compose desktop deliberately rather than just stretching mobile. Name breakpoint tokens (e.g. 360, 768, 1024, 1440) and for each key section state its mobile and desktop layouts: what stacks, reorders, collapses or hides. Use fluid type and spacing (`clamp()`) between breakpoints. On mobile: a nav pattern that fits thumbs, primary actions within thumb reach, ≥16px input text (prevents iOS zoom), and no horizontal scroll at 320px. On desktop: compose with the width. Pick a first-screen pattern and a section rhythm from [`references/composition.md`](references/composition.md), with an asymmetric grid, at least one deliberate overlap or grid break, and no empty half. Every column of the first screen carries content.
 - **Shape, elevation, motion, icons:** one radius scale (nested radius = outer radius − padding); either 3–4 shadow levels or flat with borders, not both; motion durations and easing with one intentional entrance at most, honouring `prefers-reduced-motion`; one icon set at one stroke weight.
 - **Components:** button (primary, secondary, quiet), input with label/help/error, surface or card, navigation, plus whatever the brief needs. Specify every state: default, hover, `:focus-visible`, active, disabled, loading, empty, error, success.
 - **Imagery and visual anchor:** a front page is a visual experience, not a document. Decide the image strategy and write it down: what kind of visuals (photography, illustration, product UI, diagrams, data, texture or pattern, motion), its art direction (subject, crop, light, color treatment, line weight) and where it comes from, in this order:
@@ -50,7 +50,7 @@ Write `DESIGN.md` at the repo root, plus a tokens file in the project's stack: C
   3. visuals built from the system itself: inline SVG illustration, pattern or diagram drawn in the palette; a real product UI or artefact rendered in HTML (a job ticket, a receipt, a schedule, a parts diagram) with realistic, not lorem, content; data visualisation; type set as image
   4. openly licensed photography with credit
   
-  Every visual comes from the subject's world. Plan the page as an alternation of text and visual moments, so no two text-only sections sit back to back.
+  Every visual comes from the subject's world. Plan the page as an alternation of text and visual moments, so no two text-only sections sit back to back. Name the hero pattern (composition.md) and the visual's share of the first screen: at least ~40% on desktop and ~30% on phone.
 - **Signature move:** where it appears and where it must not.
 - **Copy voice:** 3 do/don't pairs. Copy is part of the design. Write from the user's world and the product's real behaviour: headlines and section titles make a specific claim, not a label ("Brakes bled while you wait", not "Features"). Use only real content and proof. Mark missing facts as placeholders for the user to fill (`[real customer quote]`) rather than inventing stats, logos or testimonials.
 
@@ -61,8 +61,17 @@ Build one specimen page showing the type scale, the palette with contrast ratios
 ## 5. Build from the system
 
 Pages use tokens only, with no raw hex or pixel values outside the tokens file. Meet the current table stakes in [`references/exemplars.md`](references/exemplars.md#how-ux-expectations-are-evolving-20242026) (instant feedback, keyboard paths, system theming). Every page meets these:
-- The first screen has a visual anchor that isn't text (image, illustration, product artefact, diagram, data, motion), taking a meaningful share of the viewport on both phone and desktop. A card or table of text styled as an artefact still counts as text: the anchor needs shape, image, illustration or graphic at its core. On phone, keep the anchor inside the first screen (beside, behind or above the headline, or as a cropped band), rather than stacking it below the fold. The page alternates text with visual moments, per the image strategy.
+- The first screen has a visual anchor that isn't text (image, illustration, product artefact, diagram, data, motion), taking a meaningful share of the viewport on both phone and desktop. A card or table of text styled as an artefact still counts as text: the anchor needs shape, image, illustration or graphic at its core. On phone, keep the anchor inside the first screen. Mechanics: put the visual before the headline in source order (or `order: -1` at the phone breakpoint), size it between `30svh` and `45svh` so the headline and primary action still fit in the same first screen, and re-crop it for portrait; keep it visible on phones rather than `display: none` or shrinking it to an icon. On desktop, size the visual's box to at least ~40% of a 1440×900 first screen. The page alternates text with visual moments, per the image strategy.
 - Works and looks intentional at 320–430px (phones), 768px (tablet) and 1280–1920px (desktop). Check the layout at each width, never only the one you happened to build at.
+- No horizontal scroll at 320px. Build it in rather than hiding it with `overflow-x: hidden`:
+  - grid tracks `minmax(0, 1fr)` and `min-width: 0` on grid/flex children
+  - button and tag rows `flex-wrap: wrap`
+  - no fixed widths, only `max-width`
+  - `overflow-wrap: anywhere` on long words and URLs
+  - inline SVGs with a `viewBox`, `width: 100%` / `max-width: 100%` and `height: auto`
+  - decorative layers positioned inside a parent with `overflow: clip`
+  
+  If you can run a browser, at 320px this lists the offenders: `[...document.querySelectorAll('body *')].filter(e => e.getBoundingClientRect().right > innerWidth)`.
 - One primary action per view, reachable without hunting on mobile. Hierarchy comes from size, weight, space and color, in that order.
 - Visible `:focus-visible` (≥2px, 3:1 contrast, never hidden behind sticky UI). Touch targets ≥24×24px, aiming for 44px.
 - Forms: visible labels (never placeholder-only), inline errors next to the field, correct `autocomplete` and `inputmode`, paste allowed.
