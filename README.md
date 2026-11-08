@@ -24,8 +24,6 @@ Build mode where you stay the decision-maker. It activates automatically on real
 | **Receipts** for every major claim (optimisations, algorithm or dependency swaps, performance or accuracy claims, hot-path changes): a command you paste to run old vs new side by side (≥10 runs, significance check, noise labelled as noise), printing a fixed table next to the expected result. Critical claims need your own run before they're accepted | Claims become checkable instead of trusted, and stay re-runnable on other machines later |
 | **Opt-in modes:** *hands-on* (you write the core logic, in real code or pseudocode) and *debugging drill* (say "drill me" and the agent plants a bug for you to find) | Practice the skills that weaken when an AI does all the work |
 
-Benchmarked on 6 mid-tier models: mentor score 4.3 → 6.9 and mentoring checklist 34% → 90%, with trivial tasks left alone. [Results and limits](evals/grill-and-defend/RESULTS.md).
-
 ### [`design-system`](skills/design/design-system/SKILL.md)
 Gives every web UI its own design system before any page is built, so it doesn't come out as the generic AI look.
 - Takes a brief (audience, 3–5 brand attributes, references), proposes 3 clearly different directions rooted in the product's own world, and audits them against a list of [AI-default fingerprints](skills/design/design-system/references/ai-fingerprints.md), including the *new* defaults models drift to.
@@ -33,7 +31,6 @@ Gives every web UI its own design system before any page is built, so it doesn't
 - Mobile and desktop are both first-class: breakpoint tokens and a stated layout per section for each.
 - Builds a specimen page for review, then pages from tokens only, against UX rules (focus, touch targets, forms, contrast, states). Finishes with a fingerprint check at phone and desktop widths.
 - Learns from [20 exemplar systems](skills/design/design-system/references/exemplars.md) (dev tools, fintech including CRED and Zerodha, creative tools, hardware, GOV.UK), covering both visual and UX choices, and borrows their reasoning, not their look.
-- **Benchmarked** on 6 mid-tier models (DeepSeek, GLM, Qwen, Gemini Flash, GPT Luna, Claude Haiku): AI-look score 5.2 → 2.7, measured UX issues 2.8 → 1.4, blind-judged distinctiveness 5.2 → 6.4 and visual richness 4.6 → 5.4. [Results and limits](evals/design-system/RESULTS.md).
 
 ### [`readme`](skills/engineering/readme/SKILL.md)
 Writes READMEs that are short, specific to the project, and verified against the repo: only the sections the project actually has, no em dashes, no filler, and every command, flag, version and link checked against the source.
@@ -88,7 +85,6 @@ To stop the skill, disable or remove the installed skill in your agent:
 skills/<category>/<skill-name>/SKILL.md   # one folder per skill, Agent Skills format
 .claude-plugin/                           # marketplace + plugin manifests (Claude Code, Codex)
 scripts/link-skills.sh                    # symlink installer
-evals/<skill>/                            # benchmarks (run.py, evaluate.py, RESULTS.md)
 ```
 When adding a skill, also list it in `.claude-plugin/plugin.json`.
 
