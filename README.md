@@ -13,14 +13,14 @@ npx skills@latest add Dhananjay-JSR/skills
 ## Skills
 
 ### [`grill-and-defend`](skills/engineering/grill-and-defend/SKILL.md)
-Viva mode for building. It activates automatically on real design work (multi-file features, architecture, algorithms, models, data formats), not on one-line fixes.
+Build mode where you stay the decision-maker. It activates automatically on real design work (multi-file features, architecture, algorithms, models, data formats), not on one-line fixes.
 
 | What happens | Why |
 |---|---|
 | **Grilling at design forks:** forks are batched into one message, and you commit to an answer *before* seeing the agent's pick. You can skip a fork, but only with a stated reason | Avoids being anchored by the agent's suggestion. Every decision ends up with your own reasoning |
 | **Algorithm cards:** for each technique outside standard software engineering, the agent gives its family (e.g. "LoRA: a PEFT fine-tuning method"), what it does, why it was chosen here, where it lives in the code, and terms to search | You know what every piece of the system is, and where to read more |
 | **Decision log** (`DECISIONS.md`, or your existing ADR folder): each entry has a one-sentence trade-off summary, the options with pros and cons, a hypothesis, what would prove it wrong, and a pre-mortem. The agent's own assumptions are marked `assumed` | Decisions survive across sessions, and the agent's silent assumptions become visible debts |
-| **Viva quiz** after each module: 4 questions on decisions and assumptions, plus 1 code-failure question ("if this hypothesis is wrong, what happens?"). Answers are withheld until you reply, then graded | Recall beats re-reading. Missed questions go into `VIVA.md` and come back in later sessions |
+| **Module quiz** after each module: 4 questions on decisions and assumptions, plus 1 code-failure question ("if this hypothesis is wrong, what happens?"). Answers are withheld until you reply, then graded | Recall beats re-reading. Missed questions go into `VIVA.md` and come back in later sessions |
 | **Opt-in modes:** *hands-on* (you write the core logic, in real code or pseudocode) and *debugging drill* (say "drill me" and the agent plants a bug for you to find) | Practice the skills that weaken when an AI does all the work |
 
 ## Install
