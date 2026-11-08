@@ -24,7 +24,7 @@ BASE_SYS = "You are an expert frontend developer."
 
 
 def call(model, system, user, key, tries=3):
-    body = json.dumps({"model": model, "max_tokens": 40000, "reasoning": {"max_tokens": 8000},
+    body = json.dumps({"model": model, "max_tokens": 64000, "reasoning": {"max_tokens": 8000},
                        "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]})
     for i in range(tries):
         try:

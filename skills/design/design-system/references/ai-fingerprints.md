@@ -19,6 +19,8 @@ Patterns that make a UI read as generic AI output. Severity: **3** = an instant 
 | 1 | Highlighting one word in the headline in the accent color, arrows appended to every button | Emphasis that the copy earns |
 | 1 | Every button styled primary, pure `#000`/`#fff` backgrounds | One primary action per view, tinted neutrals |
 | 1 | Generic stock icons dropped above every heading, emoji as icons | Icons only where they aid scanning, one consistent set |
+| 3 | **Wall of text front page**: headline, paragraph, buttons, then more text sections with no visual anchor | An image strategy: a real visual on the first screen, alternating text and visual moments |
+| 2 | Generic visuals standing in for real ones: unDraw-style flat people, isometric 3D blobs, "person smiling at laptop" stock photos, a fake dashboard full of lorem data | Visuals from the subject's world: its objects, places, artefacts, real product UI with realistic content |
 
 ## New defaults (what models drift to when told to avoid the above)
 | Sev | Fingerprint |

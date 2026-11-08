@@ -30,7 +30,7 @@ Gives every web UI its own design system before any page is built, so it doesn't
 - Mobile and desktop are both first-class: breakpoint tokens and a stated layout per section for each.
 - Builds a specimen page for review, then pages from tokens only, against UX rules (focus, touch targets, forms, contrast, states). Finishes with a fingerprint check at phone and desktop widths.
 - Learns from [20 exemplar systems](skills/design/design-system/references/exemplars.md) (dev tools, fintech including CRED and Zerodha, creative tools, hardware, GOV.UK), covering both visual and UX choices, and borrows their reasoning, not their look.
-- **Benchmarked** on 6 mid-tier models (DeepSeek, GLM, Qwen, Gemini Flash, GPT Luna, Claude Haiku): AI-look score 5.2 → 2.1, measured UX issues 2.8 → 1.1, blind-judged distinctiveness 4.8 → 6.2. [Results and limits](evals/design-system/RESULTS.md).
+- **Benchmarked** on 6 mid-tier models (DeepSeek, GLM, Qwen, Gemini Flash, GPT Luna, Claude Haiku): AI-look score 5.2 → 2.7, measured UX issues 2.8 → 1.4, blind-judged distinctiveness 5.2 → 6.4 and visual richness 4.6 → 5.4. [Results and limits](evals/design-system/RESULTS.md).
 
 ### [`readme`](skills/engineering/readme/SKILL.md)
 Writes READMEs that are short, specific to the project, and verified against the repo: only the sections the project actually has, no em dashes, no filler, and every command, flag, version and link checked against the source.

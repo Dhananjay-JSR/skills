@@ -78,7 +78,12 @@ PROBE = """() => {
   const inputs = [...document.querySelectorAll('input:not([type=hidden]):not([type=checkbox]):not([type=radio]),select,textarea')];
   const tinyInputs = inputs.filter(e => parseFloat(getComputedStyle(e).fontSize) < 16);
   const unlabeled = inputs.filter(e => !(e.labels && e.labels.length) && !e.getAttribute('aria-label') && !e.getAttribute('aria-labelledby'));
-  return { overflow: document.documentElement.scrollWidth > window.innerWidth + 1,
+  const vw = innerWidth, vh = innerHeight;
+  const visuals = [...document.querySelectorAll('img,svg,picture,video,canvas,[style*="background-image"]')]
+    .concat([...document.querySelectorAll('body *')].filter(e => { const b = getComputedStyle(e).backgroundImage; return b && b.includes('url('); }))
+    .map(e => e.getBoundingClientRect()).filter(r => r.width > 40 && r.height > 40 && r.top < vh && r.bottom > 0);
+  const area = visuals.reduce((s, r) => s + Math.max(0, Math.min(r.right, vw) - Math.max(r.left, 0)) * Math.max(0, Math.min(r.bottom, vh) - Math.max(r.top, 0)), 0);
+  return { visual_share: Math.min(1, area / (vw * vh)), overflow: document.documentElement.scrollWidth > window.innerWidth + 1,
            targets: targets.length, small_targets: small.length, inputs: inputs.length,
            tiny_inputs: tinyInputs.length, unlabeled: unlabeled.length,
            display_font: fam(h), body_font: fam(document.body),
@@ -102,9 +107,10 @@ def judge(key, phone_png, desktop_png, brief):
     img = lambda p: {"type": "image_url", "image_url": {"url": "data:image/png;base64," + base64.b64encode(p.read_bytes()).decode()}}
     prompt = (f"Brief: {brief}\nThese are the first screen of a landing page on a phone (first image) and a desktop "
               "(second image). Rate 1-10 each, as a demanding senior product designer: distinctiveness (10 = clearly "
-              "its own identity, 1 = generic AI template), hierarchy, mobile_ux, desktop_composition, fit_to_brief. "
+              "its own identity, 1 = generic AI template), hierarchy, mobile_ux, desktop_composition, fit_to_brief, "
+              "visual_richness (10 = a strong non-text visual anchor on BOTH screens, 1 = text all around). "
               'Reply with JSON only: {"distinctiveness":n,"hierarchy":n,"mobile_ux":n,"desktop_composition":n,'
-              '"fit_to_brief":n,"note":"one sentence"}')
+              '"fit_to_brief":n,"visual_richness":n,"note":"one sentence"}')
     body = json.dumps({"model": JUDGE, "max_tokens": 400, "messages": [
         {"role": "user", "content": [{"type": "text", "text": prompt}, img(phone_png), img(desktop_png)]}]})
     req = urllib.request.Request("https://openrouter.ai/api/v1/chat/completions", body.encode(),
@@ -157,26 +163,32 @@ def ux_issues(r):
             + (not r["focus_visible"]) + (not ph["viewport"]) + (not ph["lang"]))
 
 
+def anchor(rs):
+    """Share of pages whose first screen is >=15% non-text visual, phone/desktop."""
+    f = lambda w: sum(r["m"][w].get("visual_share", 0) >= 0.15 for r in rs)
+    return f"{f('phone')}/{len(rs)} · {f('desktop')}/{len(rs)}"
+
+
 def summarize(results):
     ok = [r for r in results if "m" in r]
     groups = defaultdict(list)
     for r in ok:
         groups[(r["model"], r["cond"])].append(r)
     mean = lambda xs: round(statistics.mean(xs), 1) if xs else "-"
-    rows = ["| Model | Cond | Slop score ↓ | UX issues ↓ (of 7) | Distinct fonts (of briefs) | Default font used | Judge: distinct ↑ | hierarchy | mobile | desktop | fit |",
-            "|---|---|---|---|---|---|---|---|---|---|---|"]
+    rows = ["| Model | Cond | Slop score ↓ | UX issues ↓ (of 7) | img/svg ≥15% (phone · desktop) | Distinct fonts (of briefs) | Default font used | Judge: distinct ↑ | hierarchy | mobile | desktop | fit | visual richness ↑ |",
+            "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for (model, cond), rs in sorted(groups.items()):
         fonts = {r["m"]["desktop"]["display_font"] for r in rs}
         default = sum(r["m"]["desktop"]["display_font"] in DEFAULT_FONTS | NEW_DEFAULT_FONTS for r in rs)
         j = lambda k: mean([r["judge"][k] for r in rs if "judge" in r])
-        rows.append(f"| {model} | {cond} | {mean([sum(s for s, _ in r['hits']) for r in rs])} | {mean([ux_issues(r) for r in rs])} "
+        rows.append(f"| {model} | {cond} | {mean([sum(s for s, _ in r['hits']) for r in rs])} | {mean([ux_issues(r) for r in rs])} | {anchor(rs)} "
                     f"| {len(fonts)}/{len(rs)} | {default}/{len(rs)} | {j('distinctiveness')} | {j('hierarchy')} | {j('mobile_ux')} "
-                    f"| {j('desktop_composition')} | {j('fit_to_brief')} |")
+                    f"| {j('desktop_composition')} | {j('fit_to_brief')} | {j('visual_richness')} |")
     for cond in ("baseline", "skill"):
         rs = [r for r in ok if r["cond"] == cond]
-        rows.append(f"| **all models** | **{cond}** | **{mean([sum(s for s, _ in r['hits']) for r in rs])}** | **{mean([ux_issues(r) for r in rs])}** "
+        rows.append(f"| **all models** | **{cond}** | **{mean([sum(s for s, _ in r['hits']) for r in rs])}** | **{mean([ux_issues(r) for r in rs])}** | **{anchor(rs)}** "
                     f"| | | **{mean([r['judge']['distinctiveness'] for r in rs if 'judge' in r])}** | | **{mean([r['judge']['mobile_ux'] for r in rs if 'judge' in r])}** "
-                    f"| **{mean([r['judge']['desktop_composition'] for r in rs if 'judge' in r])}** | |")
+                    f"| **{mean([r['judge']['desktop_composition'] for r in rs if 'judge' in r])}** | | **{mean([r['judge'].get('visual_richness', 0) for r in rs if 'judge' in r])}** |")
     (OUT / "summary.md").write_text("\n".join(rows) + "\n")
     print("\n".join(rows))
     cells = []
