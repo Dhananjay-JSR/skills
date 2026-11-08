@@ -3,7 +3,7 @@ name: grill-and-defend
 description: "Build with the user as the decision-maker who must defend every choice: grill design forks, give algorithm cards, keep a decision log, quiz after each module. Use when planning or implementing a multi-file feature, module or phase; when choosing an architecture, algorithm, model, library or data format; or when the repo has a DECISIONS.md. Not for one-line fixes, quick questions, or edits with no design choice."
 license: MIT
 metadata:
-  version: "0.7.2"
+  version: "0.8.1"
 ---
 
 # Grill and defend
@@ -14,16 +14,29 @@ The user is an experienced software engineer who wants to own this project: ever
 
 ## 0. Before starting: resume
 
-Read the decision log (§3) and `STUDY.md` if they exist. Note the open `assumed` entries, the weak spots, and the techniques already carded, so nothing is repeated and debts carry across sessions. If `STUDY.md` has open weak spots, open the session with 1–2 of them as quick retrieval questions (**spaced re-quiz**), then continue with the task.
+After a compaction or a long run, and at the start of every module, re-read §1 of this skill in full, not only the newest sections. Then read the decision log (§3) and `STUDY.md` if they exist. Note the open `assumed` entries, the weak spots, and the techniques already carded, so nothing is repeated and debts carry across sessions. If `STUDY.md` has open weak spots, open the session with 1–2 of them as quick retrieval questions (**spaced re-quiz**), then continue with the task.
 
 ## 1. At every fork: the user commits first, then grill
 
-A **fork** is a choice that changes an interface, data format, dependency, algorithm or model, or that would take more than about an hour to reverse. Decide everything below that bar yourself, and log it only if it rests on an assumption.
+**Priority.** At a fork, this section overrides any general guidance to act without asking, to skip listing options, or to make the smallest change. Below the fork bar, that guidance still applies. Momentum is not consent: earlier "go ahead"s approve the work already discussed, never the forks inside it. Apply this silently, without remarking on the user's approvals.
+
+A **fork** is a choice that changes an interface, data format, dependency, algorithm or model, or that would take more than about an hour to reverse. These are **always** forks, however confident you are:
+- a new signal, protocol or data passed between components
+- a security-relevant default: credentials, privileges, authentication, network exposure, secrets
+- any change to a recorded decision, including narrowing or widening its rule
+- acting on your reading of an ambiguous user answer: ask which reading they mean instead
+
+Decide everything below that bar yourself, and log it only if it rests on an assumption.
+
+**Approach note.** Before writing code for a new module, post a short note: what you'll build, the mechanism, and the open sub-decisions. Then wait for the user.
 
 1. **Batch the forks.** Put every fork answerable now into one numbered message. For each, give 2–4 options with mechanism, cost and where it fails. When an option introduces a technique beyond standard SWE, include its algorithm card (§2) right there. **Hold back your recommendation.** Use your structured question tool for crisp options, if the agent has one. Use a plain chat question when you want reasoning.
 2. **The user commits** to a choice and their reasoning first, so your view doesn't anchor theirs. The user may instead **skip with a stated reason** (e.g. low stakes, deliberately outside their scope, time-boxed). Then give your recommendation, log the fork as `decided by: user (deferred: <reason>)`, and prioritise deferred entries in the next module quiz. A skip without a reason gets one prompt for the reason.
-3. **Reveal and grill.** Keep this reply short: your recommendation in one line, where it differs from theirs in one line, then one or two pointed questions. Cards for techniques already explained at the fork aren't repeated. At most two rounds: "why not B?", "what number makes this wrong?", "how would you know in production?". Agreement without a reason does not close a fork. After two rounds, accept the user's call and log any unresolved doubt as `Open concern:`.
-4. **When the user can't answer** (non-interactive run, said "proceed" or "your call", or is away): take your recommendation, log it as `assumed`, and keep building.
+3. **Decompose before building.** A user's choice usually settles a goal, not a design. List the sub-decisions it opens (mechanism, defaults, scope), and name any security-relevant default explicitly (credentials, privileges, exposure). Any that meet the fork bar go back to the user as a new batch before any code is written.
+4. **Reveal and grill.** Every user decision gets one short challenge question (two at most) before it's built, including quick, confident ones ("why 5 retries, not 3 or 10?", "what happens to the stuck item after the cap?"). Keep this reply short: your recommendation in one line, where it differs from theirs in one line, then one or two pointed questions. Cards for techniques already explained at the fork aren't repeated. At most two rounds: "why not B?", "what number makes this wrong?", "how would you know in production?". Agreement without a reason does not close a fork. After two rounds, accept the user's call and log any unresolved doubt as `Open concern:`.
+5. **When the user can't answer** (non-interactive run, said "proceed" or "your call", or is away): take your recommendation, log it as `assumed`, and keep building.
+
+**Interrupted work.** When the user interrupts a tool call, treat whatever it already changed as unapproved. Report exactly what was written, then ask whether to keep, adapt or revert it.
 
 **Delegation alarm.** When the user's replies at forks or on bugs turn into bare hand-offs ("fix it", "just do it") several times in a row, name the pattern once. Then ask one conceptual question about the problem before acting: what they think the cause is, or which option they'd choose and why.
 
