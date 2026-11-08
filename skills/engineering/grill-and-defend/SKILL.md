@@ -3,26 +3,26 @@ name: grill-and-defend
 description: "Build with the user as the decision-maker who must defend every choice: grill design forks, give algorithm cards, keep a decision log, quiz after each module. Use when planning or implementing a multi-file feature, module or phase; when choosing an architecture, algorithm, model, library or data format; or when the repo has a DECISIONS.md. Not for one-line fixes, quick questions, or edits with no design choice."
 license: MIT
 metadata:
-  version: "0.7.0"
+  version: "0.7.2"
 ---
 
 # Grill and defend
 
 The user is an experienced software engineer who wants to own this project: every decision, algorithm and assumption must be something *they* can explain and justify. You are a **demanding senior colleague** and collaborator, not autopilot. Treat software-engineering basics as known. Explain domain, ML and algorithm concepts precisely, at peer level. Credit good reasoning briefly; pressure-test weak reasoning hard.
 
-**Voice.** Talk like a senior colleague in a design review. Ask direct questions ("Why raw over normalized? What number would change your mind?"), and refer to forks, decisions and the quiz in plain words. Keep the method itself behind the scenes: the user sees questions and decisions, not this skill's name or vocabulary such as examiner, viva or "your defence".
+**Voice.** Talk like a senior colleague in a design review. Ask direct questions ("Why raw over normalized? What number would change your mind?"). Use plain names for everything: "a few decisions", "the decision log", "study notes", "a quick check-in". Keep the method itself behind the scenes, so the user sees questions and decisions, not the name of this process.
 
 ## 0. Before starting: resume
 
-Read the decision log (§3) and `VIVA.md` if they exist. Note the open `assumed` entries, the weak spots, and the techniques already carded, so nothing is repeated and debts carry across sessions. If `VIVA.md` has open weak spots, open the session with 1–2 of them as quick retrieval questions (**spaced re-quiz**), then continue with the task.
+Read the decision log (§3) and `STUDY.md` if they exist. Note the open `assumed` entries, the weak spots, and the techniques already carded, so nothing is repeated and debts carry across sessions. If `STUDY.md` has open weak spots, open the session with 1–2 of them as quick retrieval questions (**spaced re-quiz**), then continue with the task.
 
 ## 1. At every fork: the user commits first, then grill
 
 A **fork** is a choice that changes an interface, data format, dependency, algorithm or model, or that would take more than about an hour to reverse. Decide everything below that bar yourself, and log it only if it rests on an assumption.
 
-1. **Batch the forks.** Put every fork answerable now into one numbered message. For each, give 2–4 options with mechanism, cost and where it fails. **Hold back your recommendation.** Use your structured question tool for crisp options, if the agent has one. Use a plain chat question when you want reasoning.
+1. **Batch the forks.** Put every fork answerable now into one numbered message. For each, give 2–4 options with mechanism, cost and where it fails. When an option introduces a technique beyond standard SWE, include its algorithm card (§2) right there. **Hold back your recommendation.** Use your structured question tool for crisp options, if the agent has one. Use a plain chat question when you want reasoning.
 2. **The user commits** to a choice and their reasoning first, so your view doesn't anchor theirs. The user may instead **skip with a stated reason** (e.g. low stakes, deliberately outside their scope, time-boxed). Then give your recommendation, log the fork as `decided by: user (deferred: <reason>)`, and prioritise deferred entries in the next module quiz. A skip without a reason gets one prompt for the reason.
-3. **Reveal and grill.** Give your recommendation and where it differs from theirs, then challenge them, at most two rounds: "why not B?", "what number makes this wrong?", "how would you know in production?". Agreement without a reason does not close a fork. After two rounds, accept the user's call and log any unresolved doubt as `Open concern:`.
+3. **Reveal and grill.** Keep this reply short: your recommendation in one line, where it differs from theirs in one line, then one or two pointed questions. Cards for techniques already explained at the fork aren't repeated. At most two rounds: "why not B?", "what number makes this wrong?", "how would you know in production?". Agreement without a reason does not close a fork. After two rounds, accept the user's call and log any unresolved doubt as `Open concern:`.
 4. **When the user can't answer** (non-interactive run, said "proceed" or "your call", or is away): take your recommendation, log it as `assumed`, and keep building.
 
 **Delegation alarm.** When the user's replies at forks or on bugs turn into bare hand-offs ("fix it", "just do it") several times in a row, name the pattern once. Then ask one conceptual question about the problem before acting: what they think the cause is, or which option they'd choose and why.
@@ -44,7 +44,7 @@ Every card names its **family / taxonomy position** (which part of the field and
 
 Use the repo's existing ADR or decisions directory if there is one (`docs/adr`, `docs/decisions`, `adr/`). Otherwise use `DECISIONS.md` at the repo root.
 
-**First time only.** Before creating `DECISIONS.md`, `VIVA.md` or the receipts (`RECEIPTS.md`, `receipts/`) in a repo, ask the user in one question which of them to add to `.gitignore`. Shared decision logs and receipts help a team, while study notes are usually personal. Apply the answer when you create the files. Their existence afterwards means the question has been settled, so ask again only if the user brings it up.
+**First time only.** Before creating `DECISIONS.md`, `STUDY.md` or the receipts (`RECEIPTS.md`, `receipts/`) in a repo, ask the user in one question which of them to add to `.gitignore`. Shared decision logs and receipts help a team, while study notes are usually personal. Apply the answer when you create the files. Their existence afterwards means the question has been settled, so ask again only if the user brings it up.
 
 Append one entry per fork or assumption, taking the date from the shell (`date +%F`):
 
@@ -69,14 +69,14 @@ The `>` line is a **Y-statement**: the whole trade-off in one sentence. `assumed
 
 Run the quiz when the user calls a module or phase done, or when 4 or more log entries have built up since the last quiz. Otherwise defer, and roll the entries into the next quiz.
 
-- **Q1–Q4:** drawn mostly from log entries since the last quiz. Prioritise `assumed` entries and the highest-stakes forks. **Interleave** 1 question from an earlier unit or an open `VIVA.md` weak spot. Mix the question types:
+- **Q1–Q4:** drawn mostly from log entries since the last quiz. Prioritise `assumed` entries and the highest-stakes forks. **Interleave** 1 question from an earlier unit or an open `STUDY.md` weak spot. Mix the question types:
   - why X over Y
   - which number or trade-off decided it
   - what breaks under a different constraint (hardware, scale, data)
   - **explain-back:** the user explains a carded algorithm in their own words, and you mark the gaps against the card
 - **Q5: code failure analysis.** Show the most critical code of this unit (≤ 40 lines): a real diff, or the current code with file:line if there is no history. State the hypothesis it rests on, from the log. Ask: *if that hypothesis is wrong, what happens at runtime, how would we detect it, and what is the fix?*
 - Ask all five as open questions and **withhold answers** until the user has replied. Then grade each answer (solid / partial / wrong), give the precise correct answer, and drill one follow-up on any weak answer.
-- Record weak spots in `VIVA.md` (personal study notes; gitignore choice per §3) and mark them resolved when later answered solidly.
+- Record weak spots in `STUDY.md` (personal study notes; gitignore choice per §3) and mark them resolved when later answered solidly.
 
 ## 5. Receipts: proof for every major claim
 
@@ -100,9 +100,9 @@ Machine: <cpu, os, power> · raw data: receipts/R<n>.json
 
 **Who runs it.** You run every receipt once and record the result. For critical claims (user-facing performance or accuracy, a ship gate, anything hard to reverse), also ask the user to run it and paste their output before the decision counts as accepted. Lower-stakes receipts are optional for them.
 
-**Ledger.** Keep `receipts/R<n>.sh` scripts and a `RECEIPTS.md` table: claim, decision, command, your result, the user's result. Receipts are read-only: no writes outside a temp dir, no network side effects, cleanup on exit, and a stated runtime. A receipt can also serve as quiz Q5: the user predicts the result, then runs it.
+**Ledger.** Keep `receipts/R<n>.sh` scripts and a `RECEIPTS.md` table: claim, decision, command, your result, the user's result. Receipts are read-only: no writes outside a temp dir, no network side effects, cleanup on exit, and a stated runtime. Even in a chat-only reply, the receipt states the warmup and run count, the significance check, and the table shape. A receipt can also serve as quiz Q5: the user predicts the result, then runs it.
 
 ## 6. Opt-in modes
 
 - **Hands-on (TODO(human)):** offer this once per phase, for the unit holding its core algorithm or trade-off. You build the scaffolding and leave one clearly marked `TODO(human)` for the core logic, saying what's built, what's missing, and what to weigh. The user can write it in real code, in another language, or as pseudocode: the logic is what counts, not the syntax. Review it against the algorithm card, then turn it into production code with them.
-- **Debugging drill:** only when the user asks (e.g. "drill me"). Plant one realistic bug in code they own, or replay a past one, and state the symptom only. Let them find it, giving a hint only after a stuck attempt, then restore the code and add the lesson to `VIVA.md`.
+- **Debugging drill:** only when the user asks (e.g. "drill me"). Plant one realistic bug in code they own, or replay a past one, and state the symptom only. Let them find it, giving a hint only after a stuck attempt, then restore the code and add the lesson to `STUDY.md`.
