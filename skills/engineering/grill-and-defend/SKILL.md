@@ -3,7 +3,7 @@ name: grill-and-defend
 description: "Build with the user as the decision-maker who must defend every choice: grill design forks, give algorithm cards, keep a decision log, quiz after each module. Use when planning or implementing a multi-file feature, module or phase; when choosing an architecture, algorithm, model, library or data format; or when the repo has a DECISIONS.md. Not for one-line fixes, quick questions, or edits with no design choice."
 license: MIT
 metadata:
-  version: "0.6.0"
+  version: "0.7.0"
 ---
 
 # Grill and defend
@@ -44,7 +44,7 @@ Every card names its **family / taxonomy position** (which part of the field and
 
 Use the repo's existing ADR or decisions directory if there is one (`docs/adr`, `docs/decisions`, `adr/`). Otherwise use `DECISIONS.md` at the repo root.
 
-**First time only.** Before creating `DECISIONS.md` or `VIVA.md` in a repo, ask the user in one question whether to add them to `.gitignore`: both, only `VIVA.md`, or neither. Shared decision logs help a team, while study notes are usually personal. Apply the answer when you create the files. Their existence afterwards means the question has been settled, so ask again only if the user brings it up.
+**First time only.** Before creating `DECISIONS.md`, `VIVA.md` or the receipts (`RECEIPTS.md`, `receipts/`) in a repo, ask the user in one question which of them to add to `.gitignore`. Shared decision logs and receipts help a team, while study notes are usually personal. Apply the answer when you create the files. Their existence afterwards means the question has been settled, so ask again only if the user brings it up.
 
 Append one entry per fork or assumption, taking the date from the shell (`date +%F`):
 
@@ -78,7 +78,31 @@ Run the quiz when the user calls a module or phase done, or when 4 or more log e
 - Ask all five as open questions and **withhold answers** until the user has replied. Then grade each answer (solid / partial / wrong), give the precise correct answer, and drill one follow-up on any weak answer.
 - Record weak spots in `VIVA.md` (personal study notes; gitignore choice per §3) and mark them resolved when later answered solidly.
 
-## 5. Opt-in modes
+## 5. Receipts: proof for every major claim
+
+A **receipt** is a command the user can paste to check a claim themselves: it runs the old and new behaviour side by side on the same input and machine, and prints a fixed table.
+
+**When.** A receipt is required for every major change (an optimisation, an algorithm or dependency swap, any performance, memory, size or accuracy claim) and for every change to a hot path. A claim without a receipt is stated as unverified.
+
+**Old vs new.** Keep the old path reachable behind a flag or environment variable (e.g. `IMPL=old|new`, defaulting to new), so one build can run both. Log the flag as a debt in the decision entry and remove it once the user has accepted the receipt. When a flag can't hold both versions (a cross-cutting refactor, a dependency swap), fall back to a temporary `git worktree` of the baseline commit.
+
+**Rigour.** At least 10 measured runs after warmup, on identical input. Report median and spread, plus a significance check (`hyperfine`, `benchstat`, Mann-Whitney). Label a difference within noise as `~ (noise)`, never as a win. Record the machine. Tools and a script template: [`references/receipts.md`](references/receipts.md).
+
+**Output, always this shape:**
+
+```
+Receipt R<n>: "<claim>" (decision D<m>)
+Expected: <number from the Hypothesis>. If <Falsified-if signal>, D<m> is wrong.
+$ <one command to paste>
+| Metric | Old | New | Δ | Significant? | Runs |
+Machine: <cpu, os, power> · raw data: receipts/R<n>.json
+```
+
+**Who runs it.** You run every receipt once and record the result. For critical claims (user-facing performance or accuracy, a ship gate, anything hard to reverse), also ask the user to run it and paste their output before the decision counts as accepted. Lower-stakes receipts are optional for them.
+
+**Ledger.** Keep `receipts/R<n>.sh` scripts and a `RECEIPTS.md` table: claim, decision, command, your result, the user's result. Receipts are read-only: no writes outside a temp dir, no network side effects, cleanup on exit, and a stated runtime. A receipt can also serve as quiz Q5: the user predicts the result, then runs it.
+
+## 6. Opt-in modes
 
 - **Hands-on (TODO(human)):** offer this once per phase, for the unit holding its core algorithm or trade-off. You build the scaffolding and leave one clearly marked `TODO(human)` for the core logic, saying what's built, what's missing, and what to weigh. The user can write it in real code, in another language, or as pseudocode: the logic is what counts, not the syntax. Review it against the algorithm card, then turn it into production code with them.
 - **Debugging drill:** only when the user asks (e.g. "drill me"). Plant one realistic bug in code they own, or replay a past one, and state the symptom only. Let them find it, giving a hint only after a stuck attempt, then restore the code and add the lesson to `VIVA.md`.
