@@ -32,6 +32,9 @@ Gives every web UI its own design system before any page is built, so it doesn't
 - Builds a specimen page for review, then pages from tokens only, against UX rules (focus, touch targets, forms, contrast, states). Finishes with a fingerprint check at phone and desktop widths.
 - Learns from [20 exemplar systems](skills/design/design-system/references/exemplars.md) (dev tools, fintech including CRED and Zerodha, creative tools, hardware, GOV.UK), covering both visual and UX choices, and borrows their reasoning, not their look.
 
+### [`product-video`](skills/design/product-video/SKILL.md)
+Plans a product video (feature explainer, launch or promo) as a storyboard before production: a one-paragraph story plus a timed shot table (visual · on-screen text · voiceover · motion/sound). It covers real product shots only, a proof shot for every claim, timing and voiceover math that adds up, and a list of template tells to cut. It works with any video tool.
+
 ### [`readme`](skills/engineering/readme/SKILL.md)
 Writes READMEs that are short, specific to the project, and verified against the repo: only the sections the project actually has, no em dashes, no filler, and every command, flag, version and link checked against the source.
 

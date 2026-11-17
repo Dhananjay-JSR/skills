@@ -18,6 +18,7 @@
   "skills": [
     "./skills/engineering/grill-and-defend",
     "./skills/design/design-system",
-    "./skills/engineering/readme"
+    "./skills/engineering/readme",
+    "./skills/design/product-video"
   ]
 }
