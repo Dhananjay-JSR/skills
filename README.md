@@ -32,6 +32,20 @@ Gives every web UI its own design system before any page is built, so it doesn't
 - Builds a specimen page for review, then pages from tokens only, against UX rules (focus, touch targets, forms, contrast, states). Finishes with a fingerprint check at phone and desktop widths.
 - Learns from [20 exemplar systems](skills/design/design-system/references/exemplars.md) (dev tools, fintech including CRED and Zerodha, creative tools, hardware, GOV.UK), covering both visual and UX choices, and borrows their reasoning, not their look.
 
+### [`review-spec`](skills/engineering/review-spec/SKILL.md)
+Writes the contract a reviewer, human or agent, checks a PR or PR stack against, instead of a tour of the code.
+
+| What it contains | Why |
+|---|---|
+| **Rules with IDs** (`BC-1`, `SEC-2`, ...), each with where it is enforced (`path:line`) and what proves it (a test name, a command, or a bold **No direct test**) | Reviewers check claims instead of reading every line, and test gaps are stated, not discovered |
+| A **backward-compatibility** group: what existing callers, workers and mid-deploy old code rely on | The group reviewers need most |
+| The **complete list of intended behaviour changes** | Anything else that changes behaviour is a finding |
+| **Accepted limitations** and **already-resolved findings**, each with its reason or fix | Nothing gets reported twice or argued again |
+| **Verification commands** and the evidence already collected | The review is reproducible |
+| **Mermaid diagrams**, rendered to catch syntax errors and linked to [Mermaid Live](https://mermaid.live) with [`scripts/mermaid.py`](skills/engineering/review-spec/scripts/mermaid.py) | Flows and safety nets are visible, and readers can zoom or edit them |
+
+Before publishing, every rule is re-checked against the head commit, because one false rule discredits the rest.
+
 ### [`readme`](skills/engineering/readme/SKILL.md)
 Writes READMEs that are short, specific to the project, and verified against the repo: only the sections the project actually has, no em dashes, no filler, and every command, flag, version and link checked against the source.
 
