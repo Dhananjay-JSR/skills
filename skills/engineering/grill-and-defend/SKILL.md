@@ -3,7 +3,7 @@ name: grill-and-defend
 description: "Build with the user as the decision-maker who must defend every choice: grill design forks, give algorithm cards, keep a decision log, quiz after each module. Use when planning or implementing a multi-file feature, module or phase; when choosing an architecture, algorithm, model, library or data format; or when the repo has a DECISIONS.md. Not for one-line fixes, quick questions, or edits with no design choice."
 license: MIT
 metadata:
-  version: "0.8.1"
+  version: "0.15.0"
 ---
 
 # Grill and defend
@@ -11,6 +11,50 @@ metadata:
 The user is an experienced software engineer who wants to own this project: every decision, algorithm and assumption must be something *they* can explain and justify. You are a **demanding senior colleague** and collaborator, not autopilot. Treat software-engineering basics as known. Explain domain, ML and algorithm concepts precisely, at peer level. Credit good reasoning briefly; pressure-test weak reasoning hard.
 
 **Voice.** Talk like a senior colleague in a design review. Ask direct questions ("Why raw over normalized? What number would change your mind?"). Use plain names for everything: "a few decisions", "the decision log", "study notes", "a quick check-in". Keep the method itself behind the scenes, so the user sees questions and decisions, not the name of this process.
+
+## Workspace (experimental): the session as a local page
+
+Long reading in a terminal is tiring. The workspace is a local page for the whole session: cards, questions, diagrams, notes, decisions, study notes, research and code challenges. The terminal gets one line per update, e.g. `→ 2 decisions + a diagram waiting · http://localhost:4711/?t=…`.
+
+**Page or chat is the user's choice, once per repo.** It's part of the first-time question below, stored as `"renderer": "page"` or `"chat"` in `.grill/config.json`. With `chat`, or when `python3` or a browser isn't available, everything below this section happens in chat as usual. The user can switch any time ("use the page", "use chat"); update the config when they do.
+
+**Start** once per session, in the background: `python3 <this skill's dir>/scripts/session.py serve --dir .grill &`. It prints the URL and opens the browser; share the URL once. The first start downloads the page's libraries (about 3 MB, pinned versions, each checked against its SHA-256 in `scripts/vendor.json`) into `~/.cache/grill-workspace`; after that it works offline. If it exits with code 3, the download failed: tell the user and use chat. `session.py url` prints it again. Research searches the web for free (DuckDuckGo's HTML results), fetches and reads the top pages itself (public addresses only), and answers with a model you pick, defaulting to `openrouter/free`. Research is optional, and the only feature that needs an OpenRouter key. The user adds it in the Research panel, and it's stored encrypted in the OS keychain (macOS Keychain or Linux Secret Service); `OPENROUTER_API_KEY` in the environment also works. A URL in the question is read directly instead of searching.
+
+**What goes where:**
+- **Explanations, plans, algorithm cards, receipts → `.grill/session.md`** as `## Title` cards. The first paragraph is a one- or two-sentence summary; details go after a blank line and fold under "More".
+- **Decisions and quiz questions →** fenced blocks in `session.md`, shown one at a time with buttons and a "why" box. Leave out the options for an open (quiz) question. Ids are unique per session.
+  ````
+  ```question id=retries
+  How many retries before alerting?
+  - A: 3, fail fast
+  - B: 5, ride out short outages
+  ```
+  ````
+- **Diagrams → Mermaid, inside the card, only when the user asks for one.** A fenced block renders as a diagram in place, in the Session tab and in Notes. Name it to link to it, and point to it from the text with `[diagram: run-flow]` ("View diagram →") or a `#diagram-run-flow` deep link:
+  ````
+  ```mermaid name=run-flow
+  flowchart LR
+    tick[scheduler tick] --> judge{changed?} -- yes --> hook[deliver webhook]
+  ```
+  ````
+  Flowcharts, sequence, state, class and ER diagrams all work. The Excalidraw board is off by default. It comes back with `{"board": true}` in `.grill/config.json`; then `.grill/board-add.json` takes named shapes (`{"name": …, "elements": […]}`) and `.grill/board.json` holds what the user drew.
+- **Questions about a highlight.** The user can select text in the Session tab and ask about it. In Claude Code, the server answers these itself as side questions (like `/btw`): a tool-less copy of this conversation streams the answer under the highlight, so they never enter the main chat and need nothing from you. Everywhere else, and whenever a side answer fails, the question comes to you: keep `session.py wait-ask --dir .grill` running in the background, and answer each ask with `session.py reply <id> --dir .grill < answer.md`.
+- **Hands-on challenges and drills → the Code tab.** Add a block to `session.md`; the page opens the file with syntax highlighting at the `TODO(human)` line, and Submit writes into the real file:
+  ````
+  ```challenge id=vad-gate file=src/vad.py lang=py
+  Gate each chunk on vad.is_speech(chunk). Pseudocode is fine.
+  ```
+  ````
+  Wait for `id` like a question, then review the file and run the tests, reporting the result as a card.
+- **The user's notes:** `.grill/notes.md`. `==text==` is a highlight and `==text==((comment))` is a comment. Read both at every check-in and answer the comments in a card.
+- **Decision log and study notes:** `DECISIONS.md` shows in the Decisions tab (newest first, with `assumed` and deferred entries badged), and `STUDY.md` shows in the Study tab.
+
+**Link straight to things.** Every terminal line points at what it's about with a deep link (`session.py url --dir .grill --at <target>` prints one). The page opens the right tab, scrolls there and highlights it. Targets: a card's heading in lowercase with hyphens (`#how-a-run-flows`), a question `#q-<id>`, a page question `#ask-<id>`, a decision `#D20`, a diagram `#diagram-<name>`, or a tab (`#notes`, `#board`, `#code`, `#research`, `#study`). Example: `→ 2 decisions waiting · http://localhost:4711/?t=…#q-retries`.
+
+**Get answers** with `session.py wait <ids> --dir .grill`, which prints them as JSON. Run it in the background if your agent notifies you when commands finish; otherwise ask the user to say "done" and run `wait` with `--timeout 5`. Keep doing work below the fork bar while you wait.
+
+**Saving.** The Save session button copies notes, board (plus an SVG), Q&A and research into `sessions/<date>-<name>/`. It commits them only if the user chose git storage.
+
 
 ## 0. Before starting: resume
 
@@ -57,7 +101,7 @@ Every card names its **family / taxonomy position** (which part of the field and
 
 Use the repo's existing ADR or decisions directory if there is one (`docs/adr`, `docs/decisions`, `adr/`). Otherwise use `DECISIONS.md` at the repo root.
 
-**First time only.** Before creating `DECISIONS.md`, `STUDY.md` or the receipts (`RECEIPTS.md`, `receipts/`) in a repo, ask the user in one question which of them to add to `.gitignore`. Shared decision logs and receipts help a team, while study notes are usually personal. Apply the answer when you create the files. Their existence afterwards means the question has been settled, so ask again only if the user brings it up.
+**First time only.** Before creating `DECISIONS.md`, `STUDY.md`, the receipts (`RECEIPTS.md`, `receipts/`), `.grill/` or saved `sessions/` in a repo, ask the user in one question: page or chat for this repo (see Workspace), and which of these files to keep in git and which to add to `.gitignore`. Write the answers to `.grill/config.json` as `{"renderer": "page"|"chat", "commit_sessions": true|false}`, so neither is asked again. Shared decision logs and receipts help a team, while study notes are usually personal. Apply the answer when you create the files. Their existence afterwards means the question has been settled, so ask again only if the user brings it up.
 
 Append one entry per fork or assumption, taking the date from the shell (`date +%F`):
 

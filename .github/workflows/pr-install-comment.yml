@@ -1,0 +1,58 @@
+name: PR install comment
+
+# pull_request_target so forks' PRs can be commented on too. Safe here: this job never checks out
+# or runs the PR's code, it only reads the PR's branch name and number.
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v8
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const repo = pr.head.repo.full_name, ref = pr.head.ref, sha = pr.head.sha.slice(0, 7), n = pr.number;
+            const dir = `~/dex-skills-pr-${n}`;
+            const marker = "<!-- pr-install-comment -->";
+            const body = `${marker}
+            ### Try this PR locally
+
+            Branch \`${ref}\` from \`${repo}\`, at \`${sha}\`.
+
+            **1. Get the branch**
+            \`\`\`bash
+            git clone --depth 1 -b ${ref} https://github.com/${repo}.git ${dir}
+            \`\`\`
+            Already cloned? Update it: \`git -C ${dir} pull\`
+
+            **2. Load it**
+
+            Claude Code, for one session only (nothing is installed):
+            \`\`\`bash
+            claude --plugin-dir ${dir}
+            \`\`\`
+            If \`dex-skills\` is also installed from the marketplace, turn it off while testing, so each skill loads once: \`claude plugin disable dex-skills@dex\` (and \`claude plugin enable dex-skills@dex\` afterwards).
+
+            Codex, OpenCode and other agents (symlinks every skill into \`~/.claude/skills\` and \`~/.agents/skills\`; real folders already there are skipped, not replaced):
+            \`\`\`bash
+            ${dir}/scripts/link-skills.sh
+            \`\`\`
+
+            **3. Run the tests** (what CI runs)
+            \`\`\`bash
+            cd ${dir} && python3 scripts/check-skills.py \\
+              && python3 skills/engineering/grill-and-defend/scripts/test_session.py \\
+              && python3 skills/engineering/delete-comment/scripts/test_comments.py
+            \`\`\`
+
+            **Done testing?** \`rm -rf ${dir}\`, and re-run your usual install if you used \`link-skills.sh\`.`;
+            const { data: comments } = await github.rest.issues.listComments({ ...context.repo, issue_number: n, per_page: 100 });
+            const mine = comments.find(c => c.user.type === "Bot" && c.body.startsWith(marker));
+            if (mine) await github.rest.issues.updateComment({ ...context.repo, comment_id: mine.id, body });
+            else await github.rest.issues.createComment({ ...context.repo, issue_number: n, body });

@@ -1,0 +1,31 @@
+name: PR tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Skills are listed and have valid front matter
+        run: python3 scripts/check-skills.py
+      - name: Plugin and marketplace manifests validate
+        run: npx --yes @anthropic-ai/claude-code plugin validate .
+      - name: grill-and-defend workspace (server, library download, page questions)
+        run: python3 skills/engineering/grill-and-defend/scripts/test_session.py
+      - name: delete-comment scanner and ratchet
+        run: python3 skills/engineering/delete-comment/scripts/test_comments.py

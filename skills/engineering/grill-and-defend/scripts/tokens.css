@@ -1,0 +1,54 @@
+/* Graphite Studio tokens. Semantic roles only in components; see DESIGN.md for the why of each value. */
+:root {
+  /* primitives: graphite neutrals (hue 260, near-zero chroma: no colour cast to tire the eye) */
+  --graphite-900: oklch(0.200 0.006 260);
+  --graphite-850: oklch(0.235 0.006 260);
+  --graphite-800: oklch(0.270 0.007 260);
+  --graphite-700: oklch(0.320 0.006 260);
+  --graphite-400: oklch(0.680 0.008 260);
+  --graphite-100: oklch(0.920 0.004 260);
+  --sky-400: oklch(0.790 0.085 230);
+  --sky-950: oklch(0.210 0.030 230);
+  --amber-400: oklch(0.800 0.110 80);
+  --red-400: oklch(0.720 0.130 25);
+  --green-400: oklch(0.780 0.100 150);
+
+  /* semantic roles */
+  --color-bg: var(--graphite-900);
+  --color-surface: var(--graphite-850);
+  --color-raised: var(--graphite-800);
+  --color-border: var(--graphite-700);
+  --color-text: var(--graphite-100);
+  --color-text-muted: var(--graphite-400);
+  --color-accent: var(--sky-400);
+  --color-on-accent: var(--sky-950);
+  --color-warning: var(--amber-400);
+  --color-danger: var(--red-400);
+  --color-success: var(--green-400);
+
+  /* type: Source Serif 4 for reading, Hanken Grotesk for UI, JetBrains Mono for source */
+  --font-read: "Source Serif 4", Georgia, serif;
+  --font-ui: "Hanken Grotesk", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --text-sm: 0.875rem;   /* 14: labels, sources */
+  --text-ui: 0.9375rem;  /* 15: buttons, inputs, panels */
+  --text-read: clamp(1.0625rem, 1rem + 0.25vw, 1.125rem);  /* 17-18: reading */
+  --text-h2: clamp(1.25rem, 1.1rem + 0.5vw, 1.375rem);
+  --leading-read: 1.7;
+  --leading-ui: 1.45;
+  --measure: 62ch;
+
+  /* space: 4px base */
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px; --space-6: 28px; --space-7: 40px;
+
+  /* shape & elevation: flat with hairline borders, no shadows */
+  --radius: 8px;
+  --radius-inner: 6px;
+  --dim-inactive: 0.55;  /* signature: panes you're not in dim */
+
+  /* motion */
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  --dur-fast: 120ms;
+  --dur: 200ms;
+}
+@media (prefers-reduced-motion: reduce) { :root { --dur-fast: 0ms; --dur: 0ms; } }

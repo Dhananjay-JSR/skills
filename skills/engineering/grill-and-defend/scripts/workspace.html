@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Session</title>
+<link rel="stylesheet" href="/tokens.css">
+<link rel="stylesheet" href="/vendor/codemirror/codemirror.css">
+<style>
+  @font-face { font-family: "Source Serif 4"; src: url(/vendor/fonts/source-serif-4-400.woff2) format("woff2"); font-weight: 400; font-display: swap; }
+  @font-face { font-family: "Source Serif 4"; src: url(/vendor/fonts/source-serif-4-600.woff2) format("woff2"); font-weight: 600; font-display: swap; }
+  @font-face { font-family: "Hanken Grotesk"; src: url(/vendor/fonts/hanken-grotesk-400.woff2) format("woff2"); font-weight: 400; font-display: swap; }
+  @font-face { font-family: "Hanken Grotesk"; src: url(/vendor/fonts/hanken-grotesk-600.woff2) format("woff2"); font-weight: 600; font-display: swap; }
+  @font-face { font-family: "JetBrains Mono"; src: url(/vendor/fonts/jetbrains-mono-400.woff2) format("woff2"); font-weight: 400; font-display: swap; }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--color-bg); color: var(--color-text); font: var(--text-ui)/var(--leading-ui) var(--font-ui); }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  a { color: var(--color-accent); }
+  :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+  .top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-5); border-bottom: 1px solid var(--color-border); }
+  .top .name { font-weight: 600; } .top .sub { color: var(--color-text-muted); }
+  .top-right { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; justify-content: flex-end; min-width: 0; }
+  .top { flex-wrap: wrap; }
+  .pill { font-size: var(--text-sm); font-weight: 600; color: var(--color-on-accent); background: var(--color-accent); border-radius: 99px; padding: 3px 10px; border: 0; cursor: pointer; }
+  .pill.quiet { background: var(--color-raised); color: var(--color-text-muted); cursor: default; }
+  .ghost { background: none; border: 1px solid var(--color-border); border-radius: var(--radius-inner); padding: 5px 10px; color: var(--color-text-muted); cursor: pointer; font-size: var(--text-sm); }
+  .saved { font-size: var(--text-sm); color: var(--color-text-muted); min-width: 9ch; text-align: right; }
+
+  .app { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: var(--space-4); padding: var(--space-4) var(--space-5); height: calc(100vh - 53px); }
+  .app.no-rail { grid-template-columns: minmax(0, 1fr); } .app.no-rail .rail { display: none; }
+  .pane { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); min-width: 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column; transition: opacity var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+  /* signature: focus lighting */
+  .lit .pane:not(.active) { opacity: var(--dim-inactive); }
+  .lit .pane:not(.active):hover, .lit .pane:not(.active):focus-within { opacity: 1; }
+  .pane.active { box-shadow: 0 0 0 1px var(--color-accent) inset; }
+
+  .tabs { display: flex; gap: var(--space-1); padding: var(--space-2); border-bottom: 1px solid var(--color-border); flex: none; }
+  .tab { background: none; border: 0; padding: 6px 12px; border-radius: var(--radius-inner); color: var(--color-text-muted); cursor: pointer; min-height: 32px; }
+  .tab[aria-selected="true"] { background: var(--color-raised); color: var(--color-text); font-weight: 600; }
+  .view { flex: 1; min-height: 0; display: none; } .view.on { display: flex; }
+
+  [hidden] { display: none !important; }
+  #notes.on { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  #notes .CodeMirror { height: 100%; background: transparent; color: var(--color-text-muted); font: 14px/1.7 var(--font-mono); padding: var(--space-4) 0; border-right: 1px solid var(--color-border); }
+  #notes .CodeMirror-cursor { border-left-color: var(--color-accent); }
+  #notes .CodeMirror-selected, #notes .CodeMirror-focused .CodeMirror-selected { background: var(--color-raised); }
+  #notes .cm-s-default span { color: var(--color-text-muted); }  /* one quiet colour for source; only headings, links and bold stand out */
+  #notes .cm-s-default .cm-header { color: var(--color-accent); font-weight: 400; } #notes .cm-s-default .cm-strong { color: var(--color-text); }
+  #notes .cm-s-default .cm-link, #notes .cm-s-default .cm-url { color: var(--color-accent); }
+  #notes .CodeMirror-lines { padding: 0 var(--space-5); }
+  .prose { font: var(--text-read)/var(--leading-read) var(--font-read); padding: var(--space-5) var(--space-6); overflow: auto; }
+  .prose > * { max-width: var(--measure); }
+  .prose h1, .prose h2, .prose h3 { font-weight: 600; line-height: 1.2; margin: 1.2em 0 .5em; } .prose h2 { font-size: var(--text-h2); }
+  .prose > :first-child { margin-top: 0; }
+  .prose code { font: .85em var(--font-mono); background: var(--color-raised); padding: 1px 5px; border-radius: 4px; }
+  .prose pre { background: var(--color-bg); padding: var(--space-3) var(--space-4); border-radius: var(--radius-inner); overflow-x: auto; }
+  .prose pre code { background: none; padding: 0; }
+  .prose table { border-collapse: collapse; font: var(--text-ui) var(--font-ui); display: block; overflow-x: auto; }
+  .prose td, .prose th { border-bottom: 1px solid var(--color-border); padding: 6px 10px; text-align: left; }
+  .empty { color: var(--color-text-muted); font-family: var(--font-ui); font-size: var(--text-ui); }
+  #board { position: relative; } #board > div { position: absolute; inset: 0; }
+
+  .rail { display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; min-height: 0; }
+  .card { padding: var(--space-5); }
+  .label { font-size: .78rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--color-text-muted); margin: 0 0 var(--space-3); }
+  .q { font: 600 1.05rem/1.35 var(--font-read); margin: 0 0 var(--space-3); }
+  .opt { display: block; width: 100%; text-align: left; background: var(--color-raised); border: 1.5px solid var(--color-text-muted); border-color: color-mix(in oklch, var(--color-text-muted) 45%, transparent); border-radius: var(--radius-inner); padding: 11px 12px; margin-bottom: var(--space-2); cursor: pointer; min-height: 44px; }
+  .opt:hover { border-color: var(--color-text-muted); } .opt[aria-pressed="true"] { border-color: var(--color-accent); }
+  textarea, input[type=text], select { width: 100%; background: var(--color-raised); border: 1.5px solid var(--color-text-muted); border-color: color-mix(in oklch, var(--color-text-muted) 60%, transparent); border-radius: var(--radius-inner); padding: 10px 12px; font-size: 16px; }
+  textarea:focus, input:focus, select:focus { border-color: var(--color-accent); outline: none; }
+  textarea { min-height: 64px; resize: vertical; font-family: var(--font-ui); }
+  .hint { font-size: var(--text-sm); color: var(--color-text-muted); }
+  .primary { background: var(--color-accent); color: var(--color-on-accent); border: 0; border-radius: var(--radius-inner); padding: 10px 16px; font-weight: 600; cursor: pointer; min-height: 44px; }
+  .primary:hover { background: oklch(from var(--color-accent) calc(l - 0.04) c h); } .primary:disabled { opacity: .45; cursor: default; }
+  .row { display: flex; gap: var(--space-2); align-items: center; margin-top: var(--space-3); flex-wrap: wrap; }
+  .rail-body { flex: 1; min-height: 0; overflow: auto; }
+  .agent-card h3 { font: 600 1.05rem/1.3 var(--font-read); margin: 0 0 var(--space-2); }
+  .agent-card .body { font: 1rem/1.65 var(--font-read); } .agent-card .body p:first-child { margin-top: 0; }
+  details > summary { cursor: pointer; color: var(--color-accent); font-weight: 600; font-size: var(--text-sm); list-style: none; margin-top: var(--space-2); }
+  details > summary::-webkit-details-marker { display: none; }
+  .answered { color: var(--color-success); font-size: var(--text-sm); margin: var(--space-2) 0 0; }
+  .earlier { border-top: 1px solid var(--color-border); margin-top: var(--space-4); padding-top: var(--space-3); }
+  .earlier details { margin-bottom: var(--space-2); }
+  .ask { display: grid; gap: var(--space-2); }
+  .res { border-top: 1px solid var(--color-border); padding-top: var(--space-3); margin-top: var(--space-3); }
+  .res .qline { font-weight: 600; } .res .ans { font: 1rem/1.65 var(--font-read); }
+  .res .meta { font-size: var(--text-sm); color: var(--color-text-muted); }
+  .res .err { color: var(--color-danger); }
+  .skel { height: 12px; border-radius: 4px; background: var(--color-raised); margin: 8px 0; } .skel:nth-child(2) { width: 85%; } .skel:nth-child(3) { width: 60%; }
+
+  @media (max-width: 1023px) { .app { grid-template-columns: minmax(0, 1fr); height: auto; min-height: calc(100vh - 53px); } .main { min-height: 70vh; } }
+  @media (max-width: 767px) {
+    .app { padding: var(--space-3); gap: var(--space-3); } .top { padding: var(--space-3); }
+    #notes.on { grid-template-columns: minmax(0, 1fr); } #notes .CodeMirror { display: none; } #notes.editing .CodeMirror { display: block; border-right: 0; } #notes.editing .prose { display: none; }
+    .edit-toggle:not([hidden]) { display: inline-block !important; } .lit .pane:not(.active) { opacity: 1; }
+    .saved:empty, #railbtn { display: none; } .reader { padding: var(--space-4); }
+  }
+  .edit-toggle { display: none; }
+  mark.hl { background: color-mix(in oklch, var(--color-warning) 28%, transparent); color: var(--color-text); border-radius: 3px; padding: 0 2px; }
+  .cmt { display: inline-block; font: var(--text-sm)/1.4 var(--font-ui); color: var(--color-on-accent); background: var(--color-accent); border-radius: 10px; padding: 1px 8px; margin-left: 4px; vertical-align: 2px; }
+  .seltools { position: fixed; z-index: 20; display: flex; gap: 4px; align-items: center; background: var(--color-raised); border: 1px solid var(--color-border); border-radius: var(--radius-inner); padding: 4px; }
+  .seltools button { background: none; border: 0; color: var(--color-text); padding: 6px 10px; border-radius: 4px; cursor: pointer; } .seltools button:hover { background: var(--color-surface); }
+  .seltools input, .seltools textarea { background: var(--color-surface); color: var(--color-text); border: 1.5px solid color-mix(in oklch, var(--color-text-muted) 60%, transparent); border-radius: var(--radius-inner); font: 15px/1.45 var(--font-ui); padding: 8px 10px; }
+  .seltools input { width: 260px; }
+  .seltools input:focus, .seltools textarea:focus { border-color: var(--color-accent); outline: none; }
+  .askbox { display: grid; gap: var(--space-2); width: min(440px, calc(100vw - 32px)); padding: var(--space-2); }
+  .askbox .quote { font: italic .9rem/1.45 var(--font-read); color: var(--color-text-muted); margin: 0; max-height: 4.4em; overflow: hidden; }
+  .askbox textarea { width: 100%; min-height: 64px; resize: vertical; }
+  .askbox .row { margin-top: 0; justify-content: space-between; }
+  .askgit { display: flex; gap: var(--space-2); align-items: center; font-size: var(--text-sm); }
+  #code.on { display: flex; flex-direction: column; } #code .brief { padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--color-border); font: 1rem/1.6 var(--font-read); max-height: 35%; overflow: auto; }
+  #code .brief .file { font: var(--text-sm) var(--font-mono); color: var(--color-text-muted); }
+  #code .CodeMirror { flex: 1; height: auto; background: transparent; color: var(--color-text); font: 14px/1.6 var(--font-mono); }
+  #code .CodeMirror-gutters { background: var(--color-surface); border-right: 1px solid var(--color-border); } #code .CodeMirror-linenumber { color: var(--color-text-muted); }
+  #code .cm-s-default .cm-keyword { color: var(--color-accent); } #code .cm-s-default .cm-string { color: var(--color-success); } #code .cm-s-default .cm-comment { color: var(--color-text-muted); font-style: italic; }
+  #code .cm-s-default .cm-number, #code .cm-s-default .cm-atom { color: var(--color-warning); } #code .cm-s-default .cm-def, #code .cm-s-default .cm-variable-2 { color: var(--color-text); }
+  #code .todo-line { background: color-mix(in oklch, var(--color-accent) 14%, transparent); }
+  #code .codebar { display: flex; gap: var(--space-3); align-items: center; padding: var(--space-3) var(--space-5); border-top: 1px solid var(--color-border); }
+  .dec { border-top: 1px solid var(--color-border); padding: var(--space-3) 0; } .dec:first-of-type { border-top: 0; padding-top: 0; }
+  .dec h3 { font: 600 1rem/1.3 var(--font-read); margin: 0 0 4px; } .dec .meta { font-size: var(--text-sm); color: var(--color-text-muted); margin: 0 0 6px; }
+  .dec .y { font: .95rem/1.6 var(--font-read); margin: 0; } .dec .body { font: .95rem/1.6 var(--font-read); }
+  .badge { display: inline-block; font: 600 .72rem/1 var(--font-ui); border-radius: 99px; padding: 3px 8px; margin-left: 6px; vertical-align: 2px; }
+  .badge.assumed { background: color-mix(in oklch, var(--color-warning) 22%, transparent); color: var(--color-warning); }
+  .badge.deferred { background: var(--color-raised); color: var(--color-text-muted); }
+  .dec.superseded { opacity: .55; }
+  #session.on { display: block; overflow: auto; } .reader { padding: var(--space-6) var(--space-6) var(--space-7); }
+  .scard { max-width: 72ch; margin: 0 auto var(--space-6); padding-bottom: var(--space-6); border-bottom: 1px solid var(--color-border); font: var(--text-read)/var(--leading-read) var(--font-read); color: var(--color-text-muted); }
+  .scard.now { color: var(--color-text); } .scard:last-child { border-bottom: 0; }
+  .scard h2 { font-size: var(--text-h2); line-height: 1.25; margin: 0 0 var(--space-3); color: var(--color-text); }
+  .scard code, .agent-card code { font: .85em var(--font-mono); background: var(--color-raised); padding: 1px 5px; border-radius: 4px; }
+  .scard pre, .agent-card pre, .dec pre { background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-inner); padding: var(--space-3) var(--space-4); overflow-x: auto; font: 13.5px/1.55 var(--font-mono); }
+  .scard pre code, .agent-card pre code { background: none; padding: 0; font: inherit; }
+  .scard table { border-collapse: collapse; font: var(--text-ui) var(--font-ui); display: block; overflow-x: auto; }
+  .scard td, .scard th { border-bottom: 1px solid var(--color-border); padding: 6px 10px; text-align: left; vertical-align: top; }
+  .qw { margin: var(--space-4) 0; padding: var(--space-4) var(--space-5); border-radius: var(--radius); background: var(--color-surface); border: 1px solid var(--color-border); font-family: var(--font-ui); }
+  .qw.open { border-color: var(--color-accent); } .qw .q { color: var(--color-text); } .qw.done .q { font-weight: 400; color: var(--color-text-muted); margin-bottom: 4px; }
+  .asks:empty { display: none; } .asks { margin-top: var(--space-4); display: grid; gap: var(--space-3); }
+  .ask { border-left: 2px solid var(--color-accent); padding: var(--space-2) 0 var(--space-2) var(--space-4); font-family: var(--font-ui); }
+  .ask .quote { font: italic .95rem/1.5 var(--font-read); color: var(--color-text-muted); margin: 0 0 6px; }
+  .ask .question { font-weight: 600; color: var(--color-text); margin: 0 0 var(--space-2); }
+  .ask .reply { font: var(--text-read)/var(--leading-read) var(--font-read); color: var(--color-text); }
+  .ask .reply > :first-child { margin-top: 0; } .ask .status { font-size: var(--text-sm); color: var(--color-text-muted); }
+  .ask .caret { display: inline-block; width: 8px; height: 1em; background: var(--color-accent); vertical-align: -2px; animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0; } } @media (prefers-reduced-motion: reduce) { .ask .caret { animation: none; } }
+  .dlink { font: 600 var(--text-sm) var(--font-ui); color: var(--color-accent); background: color-mix(in oklch, var(--color-accent) 12%, transparent); border: 1px solid color-mix(in oklch, var(--color-accent) 40%, transparent); border-radius: 99px; padding: 4px 12px; cursor: pointer; }
+  .flash { animation: flash 2.4s var(--ease); border-radius: var(--radius-inner); }
+  @keyframes flash { 0%, 40% { box-shadow: 0 0 0 3px var(--color-accent); } 100% { box-shadow: 0 0 0 3px transparent; } }
+  @media (prefers-reduced-motion: reduce) { .flash { animation: none; outline: 3px solid var(--color-accent); } }
+  .mfig { margin: var(--space-4) 0; padding: var(--space-4); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); overflow-x: auto; text-align: center; }
+  .mfig svg { max-width: 100%; height: auto; } .mfig .label, .viewer .label { font: inherit; text-transform: none; letter-spacing: normal; color: inherit; margin: 0; }  /* mermaid's own .label, not ours */ .mermaid:not([data-processed]) { font: 13px/1.5 var(--font-mono); color: var(--color-text-muted); white-space: pre; text-align: left; }
+  .mfig { position: relative; cursor: zoom-in; }
+  .mfig .expand { position: absolute; top: var(--space-2); right: var(--space-2); background: var(--color-raised); border: 1px solid var(--color-border); color: var(--color-text); border-radius: var(--radius-inner); padding: 4px 10px; font: 600 var(--text-sm) var(--font-ui); cursor: pointer; opacity: .85; }
+  .mfig .expand:hover, .mfig .expand:focus-visible { opacity: 1; }
+  .viewer { position: fixed; inset: 0; z-index: 50; background: var(--color-bg); display: flex; flex-direction: column; }
+  .viewer .vbar { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-5); border-bottom: 1px solid var(--color-border); font: var(--text-ui) var(--font-ui); }
+  .viewer .vbar .title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-text-muted); }
+  .viewer .vbar .zoom { min-width: 5ch; text-align: right; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+  .viewer .vbar button { background: var(--color-raised); border: 1px solid var(--color-border); color: var(--color-text); border-radius: var(--radius-inner); padding: 6px 12px; min-height: 36px; min-width: 36px; cursor: pointer; font: 600 var(--text-ui) var(--font-ui); }
+  .viewer .stage { position: relative; flex: 1; overflow: hidden; cursor: grab; touch-action: none; } .viewer .stage.dragging { cursor: grabbing; }
+  .viewer .canvas { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
+  .viewer .hint { position: absolute; bottom: var(--space-3); left: 50%; transform: translateX(-50%); font: var(--text-sm) var(--font-ui); color: var(--color-text-muted); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 99px; padding: 4px 12px; pointer-events: none; }
+  .merr { text-align: left; font: 13px/1.5 var(--font-mono); color: var(--color-danger); white-space: pre-wrap; margin: 0; }
+  .tab .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--color-accent); margin-left: 6px; vertical-align: 1px; }
+</style>
+</head>
+<body>
+<header class="top">
+  <span><span class="name" id="sname">session</span> <span class="sub">· workspace</span></span>
+  <span class="top-right"><span class="askgit" id="askgit" hidden>Keep saved sessions in git? <button class="primary" id="gityes" style="min-height:32px;padding:6px 12px">Yes, commit them</button><button class="ghost" id="gitno">No, local only</button></span><span class="saved" id="saved" aria-live="polite"></span><button class="ghost" id="savebtn" title="Save this session into the repo">Save session</button><button class="pill quiet" id="waiting">Nothing waiting</button><button class="ghost" id="railbtn" title="Toggle side panel ( ] )">Panel</button></span>
+</header>
+<div class="app lit" id="app">
+  <section class="pane main active" id="main">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true" data-view="session">Session</button>
+      <button class="tab" role="tab" aria-selected="false" data-view="notes">Notes</button>
+      <button class="tab" role="tab" aria-selected="false" data-view="board" hidden>Board</button>
+      <button class="tab" role="tab" aria-selected="false" data-view="code" id="codetab" hidden>Code</button>
+      <button class="tab edit-toggle" id="edittoggle" hidden>Edit</button>
+    </div>
+    <div class="view on" id="session"><div class="reader" id="reader"></div></div>
+    <div class="view" id="notes"><div id="editor"></div><div class="prose" id="preview"></div></div>
+    <div class="view" id="board"></div>
+    <div class="view" id="code"><div class="brief" id="cbrief"></div><div id="ceditor" style="flex:1;min-height:0;display:flex;flex-direction:column"></div><div class="codebar"><button class="primary" id="csubmit">Submit to the agent</button><span class="hint" id="chint">Writes into the real file, then the agent reviews and runs the tests.</span></div></div>
+  </section>
+  <aside class="rail" id="rail">
+    <section class="pane" style="flex:1">
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" aria-selected="true" data-rail="decisions" id="dectab">Decisions</button>
+        <button class="tab" role="tab" aria-selected="false" data-rail="research">Research</button>
+        <button class="tab" role="tab" aria-selected="false" data-rail="study">Study</button>
+      </div>
+      <div class="rail-body card" id="decisions"></div>
+      <div class="rail-body card" id="study" hidden><div class="agent-card"><div class="body" id="studybody"></div></div></div>
+      <div class="rail-body card" id="research" hidden>
+        <form class="ask" id="keyform" hidden>
+          <label class="hint" for="keyin">Research is optional and needs an OpenRouter key. It's stored encrypted in your OS keychain and never shown here again.</label>
+          <input type="text" id="keyin" placeholder="sk-or-…" autocomplete="off" spellcheck="false" style="font-family: var(--font-mono)">
+          <div class="row"><button class="primary" type="submit">Save key</button><span class="hint" id="keyhint"></span></div>
+        </form>
+        <form class="ask" id="askform">
+          <label class="hint" for="rq">Ask a research question</label>
+          <textarea id="rq" placeholder="e.g. DeepFilterNet latency on a 4-core i3?"></textarea>
+          <label class="hint" for="model">Model</label>
+          <select id="model"><option>Loading models…</option></select>
+          <div class="row"><button class="primary" id="askbtn" type="submit">Ask</button><span class="hint" id="askhint"></span></div>
+        </form>
+        <div id="results"></div>
+      </div>
+    </section>
+  </aside>
+</div>
+<script src="/vendor/marked.min.js"></script>
+<script src="/vendor/codemirror/codemirror.js"></script>
+<script src="/vendor/codemirror/markdown.js"></script>
+<script src="/vendor/codemirror/simple.js"></script>
+<script src="/vendor/codemirror/python.js"></script><script src="/vendor/codemirror/javascript.js"></script><script src="/vendor/codemirror/rust.js"></script>
+<script src="/vendor/codemirror/go.js"></script><script src="/vendor/codemirror/clike.js"></script><script src="/vendor/codemirror/shell.js"></script><script src="/vendor/codemirror/yaml.js"></script>
+<script>
+const token = new URLSearchParams(location.search).get("t");
+const api = (p, o) => fetch(`${p}${p.includes("?") ? "&" : "?"}t=${token}`, o);
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+marked.use({ renderer: { html: h => esc(typeof h === "string" ? h : h.text) } });  // agent and note text stays text
+marked.use({ renderer: { code(code, info) {  // ```mermaid [name=run-flow] renders as a diagram in place
+  const [lang, ...rest] = String(info || "").trim().split(/\s+/);
+  if (lang !== "mermaid") return false;
+  const name = (/name=([\w-]+)/.exec(rest.join(" ")) || [])[1];
+  return `<figure class="mfig"${name ? ` id="diagram-${name}"` : ""}><div class="mermaid">${esc(mdSafe(code))}</div></figure>`;
+} } });
+// Flowchart labels go through Mermaid's markdown pass, which turns "1. step", "- x", "> y", "# z" into "Unsupported markdown: list".
+// Escape those openers at the start of a label or a <br/> line.
+const mdSafe = code => !/^\s*(flowchart|graph)\b/.test(code) ? code
+  : code.replace(/([[({|"]|<br\s*\/?>)(\s*)(\d+)\.(?=\s)/g, "$1$2$3\\.").replace(/([[({|"]|<br\s*\/?>)(\s*)([-*+#](?=\s)|>)/g, "$1$2\\$3");
+marked.use({ extensions: [{  // ==highlight== and ==highlight==((comment)) live in notes.md
+  name: "hl", level: "inline", start: s => s.indexOf("=="),
+  tokenizer(src) { const m = /^==([^=\n]+?)==(?:\(\(([^)]*)\)\))?/.exec(src); if (m) return { type: "hl", raw: m[0], text: m[1], comment: m[2] }; },
+  renderer: t => `<mark class="hl">${esc(t.text)}</mark>${t.comment ? `<span class="cmt" title="Comment">${esc(t.comment)}</span>` : ""}`,
+}] });
+const md = s => marked.parse(s || "");
+let saveTimer, savedTimer;
+let holdUntil = 0;  // keep a save/commit result readable before autosave messages replace it
+function saved(msg, hold) { if (Date.now() < holdUntil && !hold) return; if (hold) holdUntil = Date.now() + 6000; $("saved").textContent = msg; clearTimeout(savedTimer); savedTimer = setTimeout(() => $("saved").textContent = "", 2500); }
+
+/* focus lighting: the pane you're working in is lit */
+document.addEventListener("pointerdown", e => setActive(e.target.closest(".pane")));
+document.addEventListener("focusin", e => setActive(e.target.closest(".pane")));
+function setActive(p) { if (!p) return; document.querySelectorAll(".pane.active").forEach(x => x !== p && x.classList.remove("active")); p.classList.add("active"); }
+
+/* rail toggle */
+const toggleRail = () => $("app").classList.toggle("no-rail");
+$("railbtn").onclick = toggleRail;
+document.addEventListener("keydown", e => { if (e.key === "]" && !e.target.closest("textarea, input, .CodeMirror, #board")) toggleRail(); });
+$("waiting").onclick = () => {
+  document.querySelector("[data-view=session]").click();
+  const q = document.querySelector("#reader .qw.open"); if (q) { q.scrollIntoView({ behavior: "smooth", block: "center" }); q.querySelector("button, textarea")?.focus({ preventScroll: true }); }
+};
+
+/* main tabs */
+document.querySelectorAll("[data-view]").forEach(b => b.onclick = () => {
+  document.querySelectorAll("[data-view]").forEach(x => x.setAttribute("aria-selected", x === b));
+  document.querySelectorAll(".view").forEach(v => v.classList.toggle("on", v.id === b.dataset.view));
+  $("edittoggle").hidden = b.dataset.view !== "notes";
+  if (b.dataset.view === "board") loadBoard(); else if (b.dataset.view === "code") ccm && ccm.refresh(); else cm.refresh();
+});
+$("edittoggle").onclick = () => { $("notes").classList.toggle("editing"); $("edittoggle").textContent = $("notes").classList.contains("editing") ? "Preview" : "Edit"; cm.refresh(); };
+
+/* notes */
+const cm = CodeMirror($("editor"), { mode: "markdown", lineWrapping: true, value: "",
+  extraKeys: { "Cmd-Shift-H": c => c.replaceSelection(`==${c.getSelection()}==`), "Ctrl-Shift-H": c => c.replaceSelection(`==${c.getSelection()}==`) } });
+function renderNotes() { const v = cm.getValue(); $("preview").innerHTML = v.trim() ? md(v) : `<p class="empty">Write here. The agent reads this file too (notes.md).</p>`; renderMermaid($("preview")); }
+cm.on("change", () => { renderNotes(); clearTimeout(saveTimer); saveTimer = setTimeout(async () => { await api("/notes", { method: "PUT", body: cm.getValue() }); saved("Saved"); }, 600); });
+api("/notes").then(r => r.text()).then(t => { cm.setValue(t); renderNotes(); });
+
+/* board: Excalidraw loads only when first opened */
+let boardLoaded = false, exApi = null, lastBoardRev = null;
+async function syncBoard(s) {
+  if (!exApi) { if (s.board_add) $("board-dot") || document.querySelector("[data-view=board]").insertAdjacentHTML("beforeend", '<span class="dot" id="board-dot"></span>'); return; }
+  if (s.board_add && Array.isArray(s.board_add.elements)) {  // the agent drew: convert its simple shapes, framed under a name
+    const name = String(s.board_add.name || `diagram-${Date.now()}`);
+    const fid = `frame-${name}`;
+    const keep = exApi.getSceneElements().filter(el => el.id !== fid && el.frameId !== fid);  // redrawing a name replaces it
+    const shapes = s.board_add.elements.map((el, i) => ({ id: `${name}-${i}`, ...el }));
+    const xs = shapes.flatMap(el => [el.x, el.x + (el.width || 0)]), ys = shapes.flatMap(el => [el.y, el.y + (el.height || 0)]);
+    const minX = Math.min(...xs), minY = Math.min(...ys);
+    const ox = keep.length ? Math.max(...keep.map(el => el.x + (el.width || 0))) + 120 - minX : 0;  // place beside what's there
+    const moved = shapes.map(el => ({ ...el, x: el.x + ox, y: el.y - minY }));
+    const frame = { type: "frame", id: fid, name, x: minX + ox - 40, y: -60, width: Math.max(...xs) - minX + 80, height: Math.max(...ys) - minY + 100, children: moved.map(el => el.id) };
+    const added = ExcalidrawLib.convertToExcalidrawElements([...moved, frame], { regenerateIds: false });  // keep named ids so a redraw replaces
+    exApi.updateScene({ elements: [...keep, ...added] });
+    exApi.scrollToContent(added, { fitToContent: true });
+    await api("/board-add-done", { method: "POST" }); $("board-dot")?.remove();
+  } else if (lastBoardRev !== null && String(s.board_rev) !== String(lastBoardRev)) {  // board.json changed on disk
+    const d = JSON.parse((await (await api("/board")).text()) || "{}"); lastBoardRev = String(s.board_rev);
+    if (d.elements) exApi.updateScene({ elements: d.elements });
+  } else if (lastBoardRev === null) lastBoardRev = String(s.board_rev);
+}
+function loadBoard() {
+  if (boardLoaded) return; boardLoaded = true;
+  window.EXCALIDRAW_ASSET_PATH = "/vendor/";
+  const add = src => new Promise(ok => { const s = document.createElement("script"); s.src = src; s.onload = ok; document.body.append(s); });
+  add("/vendor/react.production.min.js").then(() => add("/vendor/react-dom.production.min.js")).then(() => add("/vendor/excalidraw.production.min.js")).then(async () => {
+    const raw = await (await api("/board")).text();
+    let data = null; try { data = raw ? JSON.parse(raw) : null; } catch (e) {}
+    let boardTimer;
+    const onChange = (elements, appState, files) => {
+      clearTimeout(boardTimer);
+      boardTimer = setTimeout(async () => {
+        const body = JSON.stringify({ elements, appState: { viewBackgroundColor: appState.viewBackgroundColor }, files });
+        lastBoardRev = await (await api("/board", { method: "PUT", body })).text(); saved("Board saved");
+      }, 800);
+    };
+    const el = document.createElement("div"); $("board").append(el);
+    ReactDOM.createRoot(el).render(React.createElement(ExcalidrawLib.Excalidraw, {
+      theme: "dark", initialData: data ? { ...data, scrollToContent: true } : null, onChange,
+      excalidrawAPI: a => { exApi = a; tick(true); },
+      UIOptions: { canvasActions: { loadScene: false, saveToActiveFile: false, export: { saveFileToDisk: true } } },
+    }));
+  });
+}
+
+/* the session: the agent's cards in reading order, each question inline under its context */
+let lastMd = null, lastAns = "", picked = {}, notes = {}, lastAsks = [], lastAsksJson = "";
+const QRE = /```question\s+id=([\w-]+)\s*\n([\s\S]*?)```/g;
+function parseQ(id, block) {
+  const lines = block.trim().split("\n");
+  return { id, opts: lines.filter(l => /^\s*-\s+/.test(l)).map(l => l.replace(/^\s*-\s+/, "")),
+           text: lines.filter(l => !/^\s*-\s+/.test(l)).join(" ").trim() };
+}
+function qWidget(q, answers) {
+  const a = answers[q.id];
+  if (a) return `<div class="qw done" id="q-${q.id}"><p class="q">${marked.parseInline(q.text)}</p><p class="answered">✓ ${esc(a.choice || "Answered")}${a.note ? ` · ${esc(a.note)}` : ""}</p></div>`;
+  const off = q.opts.length > 0 && picked[q.id] === undefined && !(notes[q.id] || "").trim();
+  return `<div class="qw open" id="q-${q.id}"><p class="label">Your call</p><p class="q">${marked.parseInline(q.text)}</p>
+    ${q.opts.map((o, k) => `<button class="opt" data-q="${q.id}" data-k="${k}" aria-pressed="${picked[q.id] === k}">${marked.parseInline(o)}</button>`).join("")}
+    <label class="hint" for="n-${q.id}">${q.opts.length ? "Why? Or type your own answer." : "Your answer"}</label>
+    <textarea id="n-${q.id}" data-q="${q.id}">${esc(notes[q.id] || "")}</textarea>
+    <div class="row"><button class="primary qsend" data-q="${q.id}" ${off ? "disabled" : ""}>Send</button></div></div>`;
+}
+let qIndex = {};
+function renderSession(src, answers) {
+  const all = [...src.matchAll(QRE)].map(m => parseQ(m[1], m[2]));
+  qIndex = Object.fromEntries(all.map(q => [q.id, q]));
+  const open = all.filter(q => !answers[q.id]);
+  const w = $("waiting"); w.textContent = open.length ? `${open.length} waiting on you` : "Nothing waiting"; w.className = "pill" + (open.length ? "" : " quiet");
+  document.title = open.length ? `(${open.length}) Session` : "Session";
+  const body = src.replace(/\[diagram:\s*([\w-]+)\]/g, (_, n) => `@@D:${n}@@`).replace(QRE, (_, id) => `\n\n@@Q:${id}@@\n\n`).replace(/```challenge[^\n]*\n[\s\S]*?```/g, "*Code challenge: open the Code tab.*");
+  const cards = body.split(/^(?=## )/m).map(s => s.trim()).filter(Boolean);
+  const keep = $("reader").scrollTop;
+  $("reader").innerHTML = cards.length ? cards.map((c, i) => {
+    const hasOpen = /@@Q:([\w-]+)@@/.test(c) && [...c.matchAll(/@@Q:([\w-]+)@@/g)].some(m => !answers[m[1]]);
+    const html = md(c).replace(/<p>@@Q:([\w-]+)@@<\/p>/g, (_, id) => qIndex[id] ? qWidget(qIndex[id], answers) : "")
+      .replace(/@@D:([\w-]+)@@/g, (_, n) => `<button class="dlink" data-diagram="${esc(n)}">View diagram: ${esc(n)} →</button>`);
+    const latest = i === cards.length - 1;
+    const title = (/^## (.*)$/m.exec(c) || [])[1] || "";
+    return `<article class="scard${latest || hasOpen ? " now" : ""}" id="${slug(title) || `card-${i + 1}`}" data-title="${esc(title)}">${html}<div class="asks" data-card="${esc(title)}"></div></article>`;
+  }).join("") : `<p class="empty">Nothing from the agent yet. Explanations, diagrams and questions appear here.</p>`;
+  $("reader").scrollTop = keep;
+  renderAsks(lastAsks, true);
+  renderMermaid($("reader"));
+}
+$("reader").addEventListener("click", async e => {
+  const dl = e.target.closest(".dlink");
+  if (dl) { showDiagram(dl.dataset.diagram); return; }
+  const opt = e.target.closest(".opt[data-q]");
+  if (opt) { picked[opt.dataset.q] = +opt.dataset.k; renderSession(lastMd, JSON.parse(lastAns || "{}")); return; }
+  const send = e.target.closest(".qsend");
+  if (!send) return;
+  const q = qIndex[send.dataset.q]; send.disabled = true;
+  const choice = picked[q.id] !== undefined ? q.opts[picked[q.id]] : (q.opts.length ? "Other (see note)" : "");
+  await api("/answer", { method: "POST", body: JSON.stringify({ id: q.id, choice, note: notes[q.id] || "" }) });
+  tick(true);
+});
+$("reader").addEventListener("input", e => {
+  const id = e.target.dataset?.q; if (!id) return;
+  notes[id] = e.target.value;
+  const q = qIndex[id], btn = $("reader").querySelector(`.qsend[data-q="${id}"]`);
+  if (btn) btn.disabled = q.opts.length > 0 && picked[id] === undefined && !e.target.value.trim();
+});
+async function tick(force) {
+  try {
+    const s = await (await api("/state")).json();
+    const ans = JSON.stringify(s.answers);
+    if (force || s.md !== lastMd || ans !== lastAns) { lastMd = s.md; lastAns = ans; renderSession(s.md, s.answers); renderChallenge(s.md, s.answers); }
+    const asksJson = JSON.stringify(s.asks || []);
+    if (asksJson !== lastAsksJson) { lastAsksJson = asksJson; lastAsks = s.asks || []; renderAsks(lastAsks); }
+    syncBoard(s);
+  } catch (e) { $("saved").textContent = "Server stopped: ask the agent to restart session.py serve"; }
+}
+(async function loop() { await tick(); setTimeout(loop, lastAsks.some(a => a.status !== "done") ? 400 : 1500); })();  // faster while a reply streams
+
+/* rail tabs */
+document.querySelectorAll("[data-rail]").forEach(b => b.onclick = () => {
+  document.querySelectorAll("[data-rail]").forEach(x => x.setAttribute("aria-selected", x === b));
+  for (const id of ["research", "study", "decisions"]) $(id).hidden = b.dataset.rail !== id;
+  if (b.dataset.rail === "decisions") loadDecisions();
+  if (b.dataset.rail === "study") api("/study").then(r => r.text()).then(t => $("studybody").innerHTML = t.trim() ? md(t) : `<p class="empty">No STUDY.md yet. Missed quiz questions collect here.</p>`);
+});
+
+/* research */
+function resultHtml(r) {
+  if (r.error) return `<div class="res"><p class="err">${esc(r.error)}</p></div>`;
+  const src = r.sources?.length ? `<p class="meta">Sources: ${r.sources.map(s => `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a>`).join(" · ")}</p>` : "";
+  return `<div class="res"><p class="qline">${esc(r.q)}</p><div class="ans">${md(r.answer)}</div>${src}<p class="meta">${esc(r.model)}${r.cost != null ? ` · $${Number(r.cost).toFixed(4)}` : ""}</p></div>`;
+}
+api("/research").then(r => r.json()).then(items => { $("results").innerHTML = items.slice().reverse().map(resultHtml).join(""); });
+api("/models").then(r => r.json()).then(d => {
+  if (d.error) { $("model").innerHTML = `<option>Couldn't load models</option>`; return; }
+  const keep = localStorage.getItem("research-model");
+  $("model").innerHTML = d.models.map(m => `<option value="${esc(m.id)}">${esc(m.name)}${m.free ? " · free" : ` · $${m.price}/M`}</option>`).join("");
+  if (keep && d.models.find(m => m.id === keep)) $("model").value = keep;
+  else if (d.models.find(m => m.id === "openrouter/free")) $("model").value = "openrouter/free";  // routes to whichever free model is up
+  setKeyState(d.has_key);
+});
+function setKeyState(has) {
+  $("keyform").hidden = has; $("askbtn").disabled = !has;
+  $("askhint").innerHTML = has ? `<button type="button" class="ghost" id="forgetkey">Remove key</button>` : "Add a key above to ask.";
+  if (has) $("forgetkey").onclick = async () => { const r = await (await api("/key", { method: "POST", body: "{}" })).json(); setKeyState(r.has_key); };
+}
+$("keyform").onsubmit = async e => {
+  e.preventDefault();
+  const r = await (await api("/key", { method: "POST", body: JSON.stringify({ key: $("keyin").value }) })).json();
+  $("keyin").value = "";  // never keep the key in the page
+  if (r.error) { $("keyhint").textContent = r.error; return; }
+  $("keyhint").textContent = ""; setKeyState(r.has_key);
+};
+$("model").onchange = e => { try { localStorage.setItem("research-model", e.target.value); } catch (x) {} };
+$("askform").onsubmit = async e => {
+  e.preventDefault();
+  const q = $("rq").value.trim(); if (!q) return;
+  $("askbtn").disabled = true; $("askbtn").textContent = "Asking…";
+  $("results").insertAdjacentHTML("afterbegin", `<div class="res" id="pending"><p class="qline">${esc(q)}</p><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>`);
+  try {
+    const r = await (await api("/research", { method: "POST", body: JSON.stringify({ q, model: $("model").value }) })).json();
+    $("pending").outerHTML = resultHtml({ q, model: $("model").value, ...r }); if (!r.error) $("rq").value = "";
+  } catch (x) { $("pending").outerHTML = resultHtml({ error: "Request failed. Is the server still running?" }); }
+  $("askbtn").disabled = false; $("askbtn").textContent = "Ask";
+};
+api("/state").then(r => r.json()).then(s => { $("sname").textContent = s.name || "session"; });
+
+/* highlight / comment from the preview: select text, then pick an action */
+const tools = document.createElement("div"); tools.className = "seltools"; tools.hidden = true;
+tools.innerHTML = `<button id="hlbtn">Highlight</button><button id="cmtbtn">Comment</button><input id="cmtin" placeholder="Your comment, then Enter" hidden>`;
+document.body.append(tools);
+let selText = "";
+$("preview").addEventListener("mouseup", () => setTimeout(() => {
+  const s = getSelection(); selText = s.toString().trim();
+  if (!selText || selText.includes("\n")) { tools.hidden = true; return; }
+  const r = s.getRangeAt(0).getBoundingClientRect();
+  Object.assign(tools.style, { left: `${Math.max(8, r.left)}px`, top: `${r.top - 46}px` }); tools.hidden = false; $("cmtin").hidden = true;
+}, 0));
+document.addEventListener("mousedown", e => { if (!tools.contains(e.target)) tools.hidden = true; });
+function wrapInSource(comment) {
+  const v = cm.getValue(), i = v.indexOf(selText);
+  if (i < 0) { saved("Couldn't find that text in the source; select within one paragraph"); return; }
+  const from = cm.posFromIndex(i), to = cm.posFromIndex(i + selText.length);
+  cm.replaceRange(`==${selText}==${comment ? `((${comment.replace(/[()]/g, "")}))` : ""}`, from, to);
+  tools.hidden = true; getSelection().removeAllRanges();
+}
+$("hlbtn").onclick = () => wrapInSource("");
+$("cmtbtn").onclick = () => { $("cmtin").hidden = false; $("cmtin").focus(); };
+$("cmtin").onkeydown = e => { if (e.key === "Enter" && e.target.value.trim()) { wrapInSource(e.target.value.trim()); e.target.value = ""; } if (e.key === "Escape") tools.hidden = true; };
+
+/* save session: asks once whether sessions live in git */
+async function saveSession() {
+  let svg = "";
+  if (exApi) { try { svg = (await ExcalidrawLib.exportToSvg({ elements: exApi.getSceneElements(), appState: { exportBackground: true, exportWithDarkMode: true }, files: exApi.getFiles() })).outerHTML; } catch (e) {} }
+  $("savebtn").disabled = true; $("savebtn").textContent = "Saving…";
+  const r = await (await api("/save", { method: "POST", body: JSON.stringify({ svg }) })).json();
+  $("savebtn").disabled = false; $("savebtn").textContent = "Save session";
+  if (r.ask) { $("askgit").hidden = false; return; }
+  saved(r.commit ? `Saved · committed ${r.commit}` : (r.note || "Saved"), true);
+}
+$("savebtn").onclick = saveSession;
+const setGit = async yes => { await api("/config", { method: "POST", body: JSON.stringify({ commit_sessions: yes }) }); $("askgit").hidden = true; saveSession(); };
+$("gityes").onclick = () => setGit(true); $("gitno").onclick = () => setGit(false);
+
+/* code challenges: the agent opens one with a ```challenge id=.. file=.. line=..``` block */
+let ccm = null, chal = null;
+const MODES = { py: "python", js: "javascript", mjs: "javascript", ts: "text/typescript", tsx: "text/typescript-jsx", rs: "rust", go: "go",
+  c: "text/x-csrc", h: "text/x-csrc", cpp: "text/x-c++src", java: "text/x-java", kt: "text/x-kotlin", sh: "shell", bash: "shell", yml: "yaml", yaml: "yaml", md: "markdown" };
+function renderChallenge(src, answers) {
+  const list = [...src.matchAll(/```challenge\s+([^\n]*)\n([\s\S]*?)```/g)].map(m => ({ ...Object.fromEntries([...m[1].matchAll(/(\w+)=(\S+)/g)].map(x => [x[1], x[2]])), text: m[2].trim() }));
+  const open = list.filter(c => c.id && c.file && !answers[c.id]);
+  $("codetab").hidden = !open.length && !chal;
+  const next = open[open.length - 1];
+  if (!next || (chal && chal.id === next.id)) return;
+  chal = next;
+  $("codetab").innerHTML = 'Code<span class="dot"></span>';
+  $("cbrief").innerHTML = `<p class="file">${esc(chal.file)}${chal.line ? `:${esc(chal.line)}` : ""}</p>${md(chal.text)}`;
+  api(`/file?path=${encodeURIComponent(chal.file)}`).then(r => r.text()).then(code => {
+    const ext = chal.file.split(".").pop();
+    if (!ccm) ccm = CodeMirror($("ceditor"), { lineNumbers: true, value: "", indentUnit: 4 });
+    ccm.setOption("mode", chal.lang ? (MODES[chal.lang] || chal.lang) : (MODES[ext] || null));
+    ccm.setValue(code);
+    const line = chal.line ? +chal.line - 1 : code.split("\n").findIndex(l => l.includes("TODO(human)"));
+    if (line >= 0) { ccm.addLineClass(line, "background", "todo-line"); ccm.scrollIntoView({ line, ch: 0 }, 200); ccm.setCursor({ line, ch: 0 }); }
+    setTimeout(() => ccm.refresh(), 50);
+  });
+}
+$("csubmit").onclick = async () => {
+  if (!chal || !ccm) return;
+  await api(`/file?path=${encodeURIComponent(chal.file)}`, { method: "PUT", body: ccm.getValue() });
+  await api("/answer", { method: "POST", body: JSON.stringify({ id: chal.id, choice: "submitted", note: `Wrote ${chal.file}` }) });
+  $("chint").textContent = `Submitted: ${chal.file} written. The agent will review it.`; $("codetab").textContent = "Code"; tick(true);
+};
+
+/* decisions: DECISIONS.md as cards, newest first; the agent's assumptions stand out */
+function parseDecisions(src) {
+  return src.split(/^(?=## D\d+)/m).filter(s => /^## D\d+/.test(s)).map(s => {
+    const [head, ...rest] = s.trim().split("\n");
+    const m = /^## (D\d+):\s*(.*?)\s*(?:\((.*)\))?$/.exec(head) || [];
+    const meta = m[3] || "", body = rest.join("\n").trim();
+    const y = (/^>\s*(.*)$/m.exec(body) || [])[1] || "";
+    return { id: m[1], title: m[2] || head.slice(3), meta, y, more: body.replace(/^>.*$/m, "").trim(),
+      assumed: /decided by:\s*assumed/i.test(meta), deferred: /deferred/i.test(meta), superseded: /superseded/i.test(meta) };
+  }).reverse();
+}
+let lastDecisions = null;
+async function loadDecisions() {
+  const src = await (await api("/decisions")).text();
+  if (src === lastDecisions) return;  // unchanged: keep the cards (and any highlight) as they are
+  lastDecisions = src;
+  const list = parseDecisions(src);
+  const assumed = list.filter(x => x.assumed && !x.superseded).length;
+  $("dectab").innerHTML = assumed ? `Decisions<span class="badge assumed" title="${assumed} assumed by the agent">${assumed}</span>` : "Decisions";
+  $("decisions").innerHTML = list.length ? list.map(x => `<article class="dec${x.superseded ? " superseded" : ""}" id="dec-${esc(x.id)}">
+      <h3>${esc(x.id)} · ${esc(x.title)}${x.assumed ? '<span class="badge assumed">assumed</span>' : ""}${x.deferred ? '<span class="badge deferred">deferred</span>' : ""}</h3>
+      <p class="meta">${esc(x.meta)}</p>${x.y ? `<p class="y">${marked.parseInline(x.y)}</p>` : ""}
+      ${x.more ? `<details><summary>Details</summary><div class="body">${md(x.more)}</div></details>` : ""}</article>`).join("")
+    : `<p class="empty">No decisions logged yet. Each fork you decide, and each one the agent assumes, appears here.</p>`;
+}
+loadDecisions(); setInterval(loadDecisions, 10000);  // the agent appends entries during the session
+
+/* ask Claude about a highlight: select text in the Session tab; the agent's reply streams in under that card */
+const askTools = document.createElement("div"); askTools.className = "seltools"; askTools.hidden = true;
+askTools.innerHTML = `<button id="askclaude">Ask Claude</button>
+  <form class="askbox" id="askbox" hidden autocomplete="off">
+    <p class="quote" id="askquote"></p>
+    <label class="hint" for="askin">Ask about this</label>
+    <textarea id="askin" rows="2" autocomplete="off" autocorrect="on" spellcheck="true" placeholder="e.g. Why hand-written instead of the SDK?"></textarea>
+    <div class="row"><span class="hint">Enter to send · Shift+Enter new line · Esc to cancel</span><button class="primary" type="submit">Ask</button></div>
+  </form>`;
+document.body.append(askTools);
+let askQuote = "", askCard = "", mineAt = 0, askRect = null;
+$("reader").addEventListener("mouseup", e => setTimeout(() => {
+  if (e.target.closest(".qw, textarea, button")) return;
+  const s = getSelection(); askQuote = s.toString().trim();
+  if (!askQuote) { askTools.hidden = true; return; }
+  askCard = s.anchorNode?.parentElement?.closest(".scard")?.dataset.title || "";
+  askRect = s.getRangeAt(0).getBoundingClientRect();
+  Object.assign(askTools.style, { left: `${Math.max(8, Math.min(askRect.left, innerWidth - 140))}px`, top: `${Math.max(8, askRect.top - 46)}px` });
+  askTools.hidden = false; $("askbox").hidden = true; $("askclaude").hidden = false;
+}, 0));
+document.addEventListener("mousedown", e => { if (!askTools.contains(e.target)) askTools.hidden = true; });
+$("askclaude").onclick = () => {
+  $("askclaude").hidden = true; $("askbox").hidden = false;
+  $("askquote").textContent = `“${askQuote.length > 180 ? askQuote.slice(0, 180) + "…" : askQuote}”`;
+  // the composer opens below the selection (above it when there's no room), always inside the window
+  const w = Math.min(440, innerWidth - 32) + 16, h = askTools.offsetHeight;
+  const top = askRect.bottom + 8 + h < innerHeight ? askRect.bottom + 8 : Math.max(8, askRect.top - h - 8);
+  Object.assign(askTools.style, { left: `${Math.max(8, Math.min(askRect.left, innerWidth - w - 8))}px`, top: `${top}px` });
+  $("askin").focus();
+};
+$("askin").onkeydown = e => {
+  if (e.key === "Escape") { askTools.hidden = true; return; }
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("askbox").requestSubmit(); }
+};
+$("askbox").onsubmit = async e => {
+  e.preventDefault();
+  const question = $("askin").value.trim(); if (!question) return;
+  $("askin").value = ""; askTools.hidden = true; getSelection().removeAllRanges();
+  mineAt = Date.now();
+  await api("/ask", { method: "POST", body: JSON.stringify({ quote: askQuote, question, card: askCard }) });
+  tick(true);
+};
+const ASK_STATUS = {
+  thinking: "Claude is thinking… (a side question: your main chat isn't touched)",
+  pending: "Sent to the agent. It answers when it's free.",
+  delivered: "The agent is answering…", streaming: "", done: "" };
+function renderAsks(asks, force) {
+  const slots = [...document.querySelectorAll("#reader .asks")];
+  if (!slots.length) return;
+  for (const a of asks) {
+    const slot = slots.find(s => s.dataset.card === a.card) || slots[slots.length - 1];
+    let el = document.getElementById(`ask-${a.id}`);
+    if (!el || force) {
+      el?.remove();
+      el = document.createElement("div"); el.className = "ask"; el.id = `ask-${a.id}`;
+      el.innerHTML = `<p class="quote">“${esc(a.quote.length > 220 ? a.quote.slice(0, 220) + "…" : a.quote)}”</p><p class="question">${esc(a.question)}</p><div class="reply"></div><p class="status"></p>`;
+      // right under the block that holds the highlight, so the reply streams where you were reading
+      const key = a.quote.slice(0, 60), card = slot.closest(".scard");
+      const block = card && [...card.children].reverse().find(c => !c.classList.contains("asks") && c.textContent.includes(key));
+      if (block) block.after(el); else slot.append(el);
+      if (!force && Date.now() - mineAt < 4000) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    const busy = a.status !== "done";
+    const caret = a.status === "streaming" ? '<span class="caret"></span>' : "";
+    el.querySelector(".reply").innerHTML = a.reply ? md(a.reply).replace(/(<\/\w+>)\s*$/, `${caret}$1`) : "";
+    el.querySelector(".status").textContent = a.reply ? "" : ASK_STATUS[a.status] || "";
+    el.dataset.busy = busy;
+  }
+}
+
+/* "View diagram →": open the board on that named diagram */
+function showDiagram(name) {
+  if (document.getElementById(`diagram-${name}`) || document.querySelector("[data-view=board]").hidden) return jump(`#diagram-${name}`, 0, true);
+  document.querySelector("[data-view=board]").click();
+  const go = () => {
+    if (!exApi) return setTimeout(go, 300);
+    const fid = `frame-${name}`, els = exApi.getSceneElements().filter(el => el.id === fid || el.frameId === fid);
+    if (els.length) exApi.scrollToContent(els, { fitToContent: true, animate: true }); else saved(`No diagram named ${name} on the board yet`);
+  };
+  go();
+}
+
+/* deep links: #<card-heading>, #q-<id>, #ask-<id>, #D20, #diagram-<name>, or a tab (#notes, #board, #code, #research, #study) */
+function slug(s) { return String(s).toLowerCase().normalize("NFKD").replace(/[^\w\s-]/g, "").trim().replace(/[\s_]+/g, "-").replace(/-+/g, "-"); }
+const MAIN_TABS = ["session", "notes", "board", "code"], RAIL_TABS = ["decisions", "research", "study"];
+function jump(hash, tries = 0, asFigure = false) {
+  const h = decodeURIComponent(hash.replace(/^#/, "")); if (!h) return;
+  const pick = sel => { const b = document.querySelector(sel); if (b && b.getAttribute("aria-selected") !== "true") b.click(); };  // re-clicking reloads the tab
+  const view = v => pick(`[data-view=${v}]`), rail = r => { $("app").classList.remove("no-rail"); pick(`[data-rail=${r}]`); };
+  if (MAIN_TABS.includes(h)) return view(h);
+  if (RAIL_TABS.includes(h)) return rail(h);
+  if (/^diagram-/.test(h) && !asFigure) return showDiagram(h.slice(8));
+  let el;
+  if (/^(decision-)?D\d+$/i.test(h)) {
+    rail("decisions");
+    el = document.getElementById(`dec-${h.replace(/^decision-/i, "").toUpperCase()}`);
+  } else {
+    view("session");
+    el = document.getElementById(h) || document.getElementById(slug(h));
+  }
+  if (!el) { if (tries < 20) setTimeout(() => jump(hash, tries + 1, asFigure), 300); else saved(`Nothing named #${h} on this page`); return; }  // content may still be loading
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
+  el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+}
+addEventListener("hashchange", () => jump(location.hash));
+if (location.hash) jump(location.hash);
+
+/* mermaid: loaded only when a diagram is on the page; themed to Graphite Studio (hex, since mermaid reads no oklch) */
+let mermaidReady = null;
+function renderMermaid(root) {
+  const nodes = [...root.querySelectorAll(".mermaid:not([data-processed])")];
+  if (!nodes.length) return;
+  mermaidReady ||= new Promise(ok => {
+    const s = document.createElement("script"); s.src = "/vendor/mermaid.min.js";
+    s.onload = () => {
+      mermaid.initialize({ startOnLoad: false, securityLevel: "strict", theme: "base", fontFamily: "Hanken Grotesk, system-ui, sans-serif",
+        themeVariables: { darkMode: true, background: "#1c1e21", primaryColor: "#24272a", primaryTextColor: "#e3e5e7", primaryBorderColor: "#95989d",
+          secondaryColor: "#1c1e21", tertiaryColor: "#1c1e21", lineColor: "#95989d", textColor: "#e3e5e7", edgeLabelBackground: "#1c1e21",
+          clusterBkg: "#1c1e21", clusterBorder: "#313336", noteBkgColor: "#24272a", noteTextColor: "#e3e5e7", noteBorderColor: "#7fc5e7",
+          actorBkg: "#24272a", actorBorder: "#95989d", actorTextColor: "#e3e5e7", signalColor: "#e3e5e7", fontSize: "15px",
+          attributeBackgroundColorOdd: "#24272a", attributeBackgroundColorEven: "#1c1e21" } });
+      ok();
+    };
+    document.body.append(s);
+  });
+  mermaidReady.then(async () => {
+    for (const n of nodes) {
+      if (!n.isConnected) continue;  // a re-render replaced it meanwhile
+      try {
+        await mermaid.run({ nodes: [n] });
+        const fig = n.closest(".mfig");
+        if (fig && !fig.querySelector(".expand")) fig.insertAdjacentHTML("beforeend", '<button class="expand" type="button" title="Open full screen to zoom and pan">⤢ Expand</button>');
+      }
+      catch (e) { n.outerHTML = `<pre class="merr">Diagram error: ${esc(String(e.message || e).split("\n")[0])}\n\n${esc(n.textContent)}</pre>`; }
+    }
+  });
+}
+/* the board is off unless .grill/config.json says {"board": true} */
+api("/config").then(r => r.json()).then(c => { if (c.board) document.querySelector("[data-view=board]").hidden = false; });
+
+/* diagram viewer: full screen, wheel/pinch zoom around the cursor, drag to pan */
+function openViewer(fig) {
+  const src = fig.querySelector("svg"); if (!src) return;
+  const vb = src.viewBox.baseVal, w = vb?.width || src.getBoundingClientRect().width, h = vb?.height || src.getBoundingClientRect().height;
+  const svg = src.cloneNode(true); svg.removeAttribute("style"); svg.setAttribute("width", w); svg.setAttribute("height", h);
+  const title = fig.closest(".scard")?.dataset.title || "Diagram", back = document.activeElement;
+  const v = document.createElement("div"); v.className = "viewer"; v.setAttribute("role", "dialog"); v.setAttribute("aria-label", `Diagram: ${title}`);
+  v.innerHTML = `<div class="vbar"><span class="title">${esc(title)}</span><span class="zoom"></span>
+    <button data-z="out" aria-label="Zoom out">−</button><button data-z="in" aria-label="Zoom in">+</button><button data-z="fit">Fit</button><button data-z="one">100%</button><button data-z="close">Close</button></div>
+    <div class="stage"><div class="canvas"></div><span class="hint">Scroll or pinch to zoom · drag to pan · Esc to close</span></div>`;
+  document.body.append(v);
+  const stage = v.querySelector(".stage"), canvas = v.querySelector(".canvas"); canvas.append(svg);
+  let s = 1, x = 0, y = 0;
+  const apply = () => { canvas.style.transform = `translate(${x}px, ${y}px) scale(${s})`; v.querySelector(".zoom").textContent = `${Math.round(s * 100)}%`; };
+  const zoomAt = (f, cx, cy) => { const ns = Math.min(8, Math.max(0.05, s * f)); x = cx - (cx - x) * (ns / s); y = cy - (cy - y) * (ns / s); s = ns; apply(); };
+  const fit = () => { const r = stage.getBoundingClientRect(); s = Math.min(r.width / w, r.height / h) * 0.94; x = (r.width - w * s) / 2; y = (r.height - h * s) / 2; apply(); };
+  const center = f => { const r = stage.getBoundingClientRect(); zoomAt(f, r.width / 2, r.height / 2); };
+  const close = () => { v.remove(); removeEventListener("keydown", onKey); back?.focus?.(); };
+  const onKey = e => {
+    if (e.key === "Escape") close(); else if (e.key === "+" || e.key === "=") center(1.25);
+    else if (e.key === "-") center(0.8); else if (e.key === "0") fit();
+  };
+  addEventListener("keydown", onKey);
+  stage.addEventListener("wheel", e => { e.preventDefault(); const r = stage.getBoundingClientRect(); zoomAt(Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015)), e.clientX - r.left, e.clientY - r.top); }, { passive: false });
+  let drag = null;
+  stage.addEventListener("pointerdown", e => { drag = { px: e.clientX, py: e.clientY, x, y }; stage.setPointerCapture(e.pointerId); stage.classList.add("dragging"); v.querySelector(".hint")?.remove(); });
+  stage.addEventListener("pointermove", e => { if (!drag) return; x = drag.x + e.clientX - drag.px; y = drag.y + e.clientY - drag.py; apply(); });
+  stage.addEventListener("pointerup", () => { drag = null; stage.classList.remove("dragging"); });
+  v.querySelector(".vbar").addEventListener("click", e => {
+    const z = e.target.dataset?.z; if (!z) return;
+    if (z === "close") close(); else if (z === "fit") fit(); else if (z === "in") center(1.25); else if (z === "out") center(0.8);
+    else { const r = stage.getBoundingClientRect(); s = 1; x = (r.width - w) / 2; y = Math.max(16, (r.height - h) / 2); apply(); }
+  });
+  fit(); v.querySelector("[data-z=close]").focus();
+}
+for (const root of [$("reader"), $("preview")]) root.addEventListener("click", e => {
+  const fig = e.target.closest(".mfig"); if (!fig || getSelection().toString().trim()) return;
+  if (fig.querySelector("svg")) openViewer(fig);
+});
+</script>
+</body>
+</html>

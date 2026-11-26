@@ -1,0 +1,129 @@
+{
+ "marked.min.js": {
+  "url": "https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js",
+  "sha256": "15fabce5b65898b32b03f5ed25e9f891a729ad4c0d6d877110a7744aa847a894"
+ },
+ "mermaid.min.js": {
+  "url": "https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js",
+  "sha256": "a43bc1afd446f9c4cc66ac5dd45d02e8d65e26fc5344ec0ef787f88d6ddb6f9e"
+ },
+ "react.production.min.js": {
+  "url": "https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js",
+  "sha256": "d949f1c3687aedadcedac85261865f29b17cd273997e7f6b2bfc53b2f9d4c4dd",
+  "board": true
+ },
+ "react-dom.production.min.js": {
+  "url": "https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js",
+  "sha256": "35f4f974f4b2bcd44da73963347f8952e341f83909e4498227d4e26b98f66f0d",
+  "board": true
+ },
+ "excalidraw.production.min.js": {
+  "url": "https://cdn.jsdelivr.net/npm/@excalidraw/excalidraw@0.17.6/dist/excalidraw.production.min.js",
+  "sha256": "27b133f845543f091aa518924b5b2fdd7eb52a9e490de100b9bc3bfd2ae2f314",
+  "board": true
+ },
+ "codemirror/codemirror.js": {
+  "url": "https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.js",
+  "sha256": "0644e6418c4129c9584b9b772b8b8bdb0b4fbab1efd848a98baf1fe147381f22"
+ },
+ "codemirror/codemirror.css": {
+  "url": "https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.css",
+  "sha256": "eb494ea972d2661ef86f7f6ac656dd6786d721e49c9c1b46e1eb967e4b6f9bf3"
+ },
+ "codemirror/simple.js": {
+  "url": "https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/mode/simple.js",
+  "sha256": "400f49309b31197c0c4ec76519c93647b494ab80f59f96d7f051463e0aa37eb0"
+ },
+ "codemirror/markdown.js": {
+  "url": "https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/markdown/markdown.js",
+  "sha256": "8fe7b11848f79cc9119b2a239f38a00944f6f2bb764a00bc837ecf8d34cf7690"
+ },
+ "codemirror/python.js": {
+  "url": "https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/python/python.js",
+  "sha256": "19a59ca387addb04e95002c9adbe2b8c231427ce49369ac537107e3088a6947c"
+ },
+ "codemirror/javascript.js": {
+  "url": "https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/javascript/javascript.js",
+  "sha256": "1311c73c66308ba6f78512b4c2e770a6900c80c3629683763329668ee6111163"
+ },
+ "codemirror/rust.js": {
+  "url": "https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/rust/rust.js",
+  "sha256": "797a9abcf8581f192bc49b11434346d3f8014763f4967ae260fbe31f25b2bdfb"
+ },
+ "codemirror/go.js": {
+  "url": "https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/go/go.js",
+  "sha256": "a3402cad4f69a45992d8f22019f156c560c1d8f06c82d7cbbf4339f2745a6b0d"
+ },
+ "codemirror/clike.js": {
+  "url": "https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/clike/clike.js",
+  "sha256": "25c92495700d1883b5f0e08f2e77d6fe0265f992e47b59199aa8746f66c4021b"
+ },
+ "codemirror/shell.js": {
+  "url": "https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/shell/shell.js",
+  "sha256": "24f77cb162ea9d9e9fc79b95ba547a7cc10a0767e3a5a52c786d4c24253736fe"
+ },
+ "codemirror/yaml.js": {
+  "url": "https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/yaml/yaml.js",
+  "sha256": "7de73109e5bfb6951d53764f5210f00f7859b57525811fab6b6f843980a7726e"
+ },
+ "fonts/source-serif-4-400.woff2": {
+  "url": "https://cdn.jsdelivr.net/npm/@fontsource/source-serif-4@5.1.0/files/source-serif-4-latin-400-normal.woff2",
+  "sha256": "5e7fda9cec061fcef363f78ccd099988e89683633a3ed46bf0bfb460e7246a2c"
+ },
+ "fonts/source-serif-4-600.woff2": {
+  "url": "https://cdn.jsdelivr.net/npm/@fontsource/source-serif-4@5.1.0/files/source-serif-4-latin-600-normal.woff2",
+  "sha256": "2847f4d3b333168cf9254cbdecb8b7735c8663469e701deab452b34c16e9092e"
+ },
+ "fonts/hanken-grotesk-400.woff2": {
+  "url": "https://cdn.jsdelivr.net/npm/@fontsource/hanken-grotesk@5.1.0/files/hanken-grotesk-latin-400-normal.woff2",
+  "sha256": "294ebb02701a56535ef031d4a241cb7621aa16dbd12ea934a5e1c3e518194b37"
+ },
+ "fonts/hanken-grotesk-600.woff2": {
+  "url": "https://cdn.jsdelivr.net/npm/@fontsource/hanken-grotesk@5.1.0/files/hanken-grotesk-latin-600-normal.woff2",
+  "sha256": "0d8f4feb4c9f790d50f5dd0e6eac57f3597948fe8ba0190752d505d8b772ccc7"
+ },
+ "fonts/jetbrains-mono-400.woff2": {
+  "url": "https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.1.0/files/jetbrains-mono-latin-400-normal.woff2",
+  "sha256": "7c53386f55c866c1b4c9309c4bcf74eda10896aab3a1780b0af5cc4976e27a27"
+ },
+ "excalidraw-assets/Assistant-Bold.woff2": {
+  "url": "https://cdn.jsdelivr.net/npm/@excalidraw/excalidraw@0.17.6/dist/excalidraw-assets/Assistant-Bold.woff2",
+  "sha256": "e0cdd332ce039770e93ec44336b6db65f931940f42b0342aad35a06e7f991d29",
+  "board": true
+ },
+ "excalidraw-assets/Assistant-Medium.woff2": {
+  "url": "https://cdn.jsdelivr.net/npm/@excalidraw/excalidraw@0.17.6/dist/excalidraw-assets/Assistant-Medium.woff2",
+  "sha256": "81a9f280ce6a790f20ca8cd521183caa430f1f7fdc0752c36ef1cc6dc828ac57",
+  "board": true
+ },
+ "excalidraw-assets/Assistant-Regular.woff2": {
+  "url": "https://cdn.jsdelivr.net/npm/@excalidraw/excalidraw@0.17.6/dist/excalidraw-assets/Assistant-Regular.woff2",
+  "sha256": "76945f09225aae65bdbd204cb4ac40d4caa4ff67150e5074bab1a04d1b778fc3",
+  "board": true
+ },
+ "excalidraw-assets/Assistant-SemiBold.woff2": {
+  "url": "https://cdn.jsdelivr.net/npm/@excalidraw/excalidraw@0.17.6/dist/excalidraw-assets/Assistant-SemiBold.woff2",
+  "sha256": "bba47a7d1b185a4a2e0d265ec82aeac5dbc2dc9cb0f482a2ff57cbdfe4e5045d",
+  "board": true
+ },
+ "excalidraw-assets/Cascadia.woff2": {
+  "url": "https://cdn.jsdelivr.net/npm/@excalidraw/excalidraw@0.17.6/dist/excalidraw-assets/Cascadia.woff2",
+  "sha256": "6d27c0474bb6c7922911f90ae811918f6be943005f1c4a6ec0e5b70a2bfddf16",
+  "board": true
+ },
+ "excalidraw-assets/Virgil.woff2": {
+  "url": "https://cdn.jsdelivr.net/npm/@excalidraw/excalidraw@0.17.6/dist/excalidraw-assets/Virgil.woff2",
+  "sha256": "9976295bfe709bdea64839a4d4e9a1d436dd6eb67538399a5a0e8b8fadbcf1cf",
+  "board": true
+ },
+ "excalidraw-assets/vendor-677e88ca78c86bddf13d.js": {
+  "url": "https://cdn.jsdelivr.net/npm/@excalidraw/excalidraw@0.17.6/dist/excalidraw-assets/vendor-677e88ca78c86bddf13d.js",
+  "sha256": "8e496e2d4d71d85c73c114ed5473d34c27c83a2344b6f036327b955e5ab0f260",
+  "board": true
+ },
+ "excalidraw-assets/vendor-677e88ca78c86bddf13d.js.LICENSE.txt": {
+  "url": "https://cdn.jsdelivr.net/npm/@excalidraw/excalidraw@0.17.6/dist/excalidraw-assets/vendor-677e88ca78c86bddf13d.js.LICENSE.txt",
+  "sha256": "3078cf9d0ec3d74a5b12ac96733ae6295c824e140eb1a5a36774a09b38523a10",
+  "board": true
+ }
+}
