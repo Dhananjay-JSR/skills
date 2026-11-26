@@ -46,6 +46,17 @@ Writes the contract a reviewer, human or agent, checks a PR or PR stack against,
 
 Before publishing, every rule is re-checked against the head commit, because one false rule discredits the rest.
 
+### [`delete-comment`](skills/engineering/delete-comment/SKILL.md)
+Audits every code comment in the repo or a path you name, and keeps comments from growing back.
+
+| Comment type | What happens |
+|---|---|
+| **Tautology** (repeats the code) or **stale** (no longer true, or commented-out code) | Deleted |
+| **Excuse** (`TODO`, `HACK`, "for now", "workaround") | Deleted, and an issue is filed to fix the hack, after you approve the list |
+| **Decision record** (a non-obvious why) | Moved into an ADR in your existing ADR folder, or `docs/adr/` |
+
+Then it adds a **ratchet** lint check ([`scripts/comments.py`](skills/engineering/delete-comment/scripts/comments.py), Python stdlib only): each file's comment count is frozen in `.comment-baseline.json` and can only go down, so the cleanup can span several PRs. It also estimates how many lines deleting every comment sheds. Tool directives (`eslint-disable`, `noqa`, `@ts-expect-error`), licence headers and docstrings are left alone.
+
 ### [`readme`](skills/engineering/readme/SKILL.md)
 Writes READMEs that are short, specific to the project, and verified against the repo: only the sections the project actually has, no em dashes, no filler, and every command, flag, version and link checked against the source.
 
