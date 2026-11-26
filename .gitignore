@@ -2,3 +2,4 @@
 evals/*/out/
 .env*
 evals/
+__pycache__/
